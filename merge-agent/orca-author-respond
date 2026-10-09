@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# An author agent answers a merge-agent question about a PR it wrote.
+set -uo pipefail
+AUTHOR=$1; PR=$2
+MERGE_DIR=${MERGE_DIR:-/home/ubuntu/.orca-merge}
+MODEL=${MODEL:-fireworks-azure/Avi-DeepSeek-V4.1-Flash}
+AGENT=${AGENT:-/home/ubuntu/.local/bin/Avi-opencode2}
+Q="$MERGE_DIR/questions/$PR.json"
+[ -f "$Q" ] || { echo "no question for #$PR"; exit 1; }
+question=$(jq -r .question "$Q"); files=$(jq -r '.files|join(", ")' "$Q")
+ans=$(timeout 180 "$AGENT" run --standalone --auto --model "$MODEL" \
+"You are author agent ${AUTHOR} for PR #$PR. Merge agent asks: ${question}
+Conflicting files: ${files}. Reply with one concise resolution directive." </dev/null 2>&1 | tail -4)
+mkdir -p "$MERGE_DIR/answers"
+python3 - "$PR" "$AUTHOR" "$ans" > "$MERGE_DIR/answers/$PR.json" <<'PY'
+import json,sys
+pr,author,ans=sys.argv[1:]
+print(json.dumps({"pr":int(pr),"author":author,"answer":ans.strip()},indent=2))
+PY
+echo "answered #$PR"

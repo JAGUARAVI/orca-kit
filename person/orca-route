@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Route an Orca-launched agent to the worktree owner's per-person env, then exec it.
+set -euo pipefail
+export PATH="/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:$PATH"
+agent="$1"; shift || true
+owner=""
+if [ -f ./.orca-owner ]; then owner=$(cat ./.orca-owner 2>/dev/null || true); fi
+if [ -z "$owner" ]; then
+  root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+  [ -n "$root" ] && [ -f "$root/.orca-owner" ] && owner=$(cat "$root/.orca-owner" 2>/dev/null || true)
+fi
+[ -z "$owner" ] && owner="${ORCA_PERSON:-Avi}"
+env_file="/home/ubuntu/.orca-keys/${owner}.env"
+if [ -f "$env_file" ]; then set -a; . "$env_file"; set +a; fi
+exec "$agent" "$@"

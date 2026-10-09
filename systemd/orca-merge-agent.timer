@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the Orca merge agent every 2 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=60s
+Unit=orca-merge-agent.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Automated merge agent for an Orca hackathon repo. Repo/branch come from
+# /home/ubuntu/.orca-hackathon/config (override with ORCA_HACKATHON_CONFIG).
+set -uo pipefail
+CFG="${ORCA_HACKATHON_CONFIG:-/home/ubuntu/.orca-hackathon/config}"
+[ -f "$CFG" ] && { set -a; . "$CFG"; set +a; }
+REPO_DIR=${REPO_DIR:-/srv/orca-demo}
+MERGE_DIR=${MERGE_DIR:-/home/ubuntu/.orca-merge}
+BIN=${BIN:-/home/ubuntu/bin}
+mkdir -p "$MERGE_DIR"/{questions,answers,work,log}
+cd "$REPO_DIR" || exit 1
+log(){ echo "$(date -Is) $*" | tee -a "$MERGE_DIR/log/merge-agent.log"; }
+for n in $(gh pr list --label merge-ready --state open --json number,createdAt --jq 'sort_by(.createdAt)|.[].number'); do
+  guidance=""
+  [ -f "$MERGE_DIR/answers/$n.json" ] && guidance=$(jq -r .answer "$MERGE_DIR/answers/$n.json")
+  if gh pr update-branch "$n" >/tmp/u.$n 2>&1; then
+    gh pr merge "$n" --squash --auto >/dev/null 2>&1 && { log "#$n armed"; continue; }
+  elif grep -qi 'up to date' /tmp/u.$n; then
+    gh pr merge "$n" --squash --auto >/dev/null 2>&1 && { log "#$n up-to-date armed"; continue; }
+  fi
+  log "#$n conflict -> resolving${guidance:+ (with author guidance)}"
+  if "$BIN/orca-merge-resolve.sh" "$n" ${guidance:+--guidance "$guidance"} 2>>"$MERGE_DIR/log/resolve-$n.log"; then rc=0; else rc=$?; fi
+  if [ "$rc" = 0 ]; then
+    gh pr edit "$n" --remove-label merge-conflict >/dev/null 2>&1
+    gh pr edit "$n" --remove-label needs-author-input >/dev/null 2>&1
+    rm -f "$MERGE_DIR/answers/$n.json"
+    gh pr merge "$n" --squash --auto >/dev/null 2>&1
+    log "#$n RESOLVED + armed"
+  else
+    gh pr edit "$n" --add-label merge-conflict >/dev/null 2>&1
+    gh pr edit "$n" --add-label needs-author-input >/dev/null 2>&1
+    q=$(jq -r .question "$MERGE_DIR/questions/$n.json" 2>/dev/null)
+    gh pr comment "$n" --body "**merge-agent:** escalated to author agent(s) — ${q}" >/dev/null 2>&1
+    log "#$n ESCALATED: $q"
+  fi
+done

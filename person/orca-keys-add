@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+name="${1:?usage: orca-keys-add <name>}"
+K=/home/ubuntu/.orca-keys
+[ -f "$K/$name.env" ] && { echo "exists: $K/$name.env"; exit 1; }
+umask 077; mkdir -p "$K"; chmod 700 "$K"
+cat > "$K/$name.env" <<ENV
+# $name - per-person API keys (chmod 600)
+OPENCODE_FIREWORKS_API_KEY=
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+CURSOR_API_KEY=
+ENV
+chmod 600 "$K/$name.env"
+cat > "$K/$name.opencode.json" <<JSON
+{
+  "provider": { "fireworks-azure": { "models": {
+    "$name-DeepSeek-V4.1-Flash": {
+      "id": "DeepSeek-V4.1-Flash", "name": "$name-DeepSeek-V4.1-Flash",
+      "limit": { "context": 1000000, "output": 16384 },
+      "cost": { "input": 0.3, "output": 1.2, "cache": { "read": 0.006, "write": 0 } }
+    }
+  }}}
+}
+JSON
+for pair in "opencode2:opencode2" "claude:claude" "codex:codex" "cursor:cursor-agent"; do
+  w="${pair%%:*}"; b="${pair##*:}"
+  cat > "/home/ubuntu/.local/bin/${name}-${w}" <<WRAP
+#!/usr/bin/env bash
+set -euo pipefail
+set -a; . "$K/$name.env"; set +a
+[ -f "$K/$name.opencode.json" ] && export OPENCODE_CONFIG="$K/$name.opencode.json"
+exec $b "\$@"
+WRAP
+  chmod +x "/home/ubuntu/.local/bin/${name}-${w}"
+done
+echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor}. Fill keys, then use e.g. ${name}-opencode."

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec /home/ubuntu/bin/orca-route codex "$@"
