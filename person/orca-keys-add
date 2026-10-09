@@ -2,14 +2,20 @@
 set -euo pipefail
 name="${1:?usage: orca-keys-add <name>}"
 K=/home/ubuntu/.orca-keys
+P=/home/ubuntu/.orca-people/$name
 [ -f "$K/$name.env" ] && { echo "exists: $K/$name.env"; exit 1; }
-umask 077; mkdir -p "$K"; chmod 700 "$K"
+umask 077; mkdir -p "$K" "$P/gh" "$P/claude"
+chmod 700 "$K" "$P" "$P/gh" "$P/claude"
 cat > "$K/$name.env" <<ENV
-# $name - per-person API keys (chmod 600)
+# $name - per-person API keys + identity (chmod 600)
 OPENCODE_FIREWORKS_API_KEY=
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 CURSOR_API_KEY=
+CLAUDE_CONFIG_DIR=$P/claude
+# GitHub identity — populate with: orca-gh-add $name [token]
+GH_CONFIG_DIR=$P/gh
+GH_USER=
 ENV
 chmod 600 "$K/$name.env"
 cat > "$K/$name.opencode.json" <<JSON
@@ -34,4 +40,12 @@ exec $b "\$@"
 WRAP
   chmod +x "/home/ubuntu/.local/bin/${name}-${w}"
 done
-echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor}. Fill keys, then use e.g. ${name}-opencode."
+cat > "/home/ubuntu/.local/bin/${name}-gh" <<WRAP
+#!/usr/bin/env bash
+set -euo pipefail
+export GH_CONFIG_DIR=$P/gh
+exec gh "\$@"
+WRAP
+chmod +x "/home/ubuntu/.local/bin/${name}-gh"
+echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor,gh}."
+echo "next: orca-gh-add $name [token]"

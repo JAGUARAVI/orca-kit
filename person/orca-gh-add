@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Authenticate a person's GitHub account for Orca agents.
+# Gives them an isolated gh config dir (GH_CONFIG_DIR) + git identity, so their
+# gh commands AND git pushes use their own account.
+# Usage: orca-gh-add <Name> [token]
+#   token: a PAT (classic: repo, workflow, project, read:org). Omit to login interactively.
+set -euo pipefail
+export PATH="/home/ubuntu/.local/bin:$PATH"
+name="${1:?usage: orca-gh-add <Name> [token]}"
+token="${2:-}"
+K=/home/ubuntu/.orca-keys
+GH="$HOME/.orca-people/$name/gh"
+P="$HOME/.orca-people/$name"
+umask 077; mkdir -p "$GH"; chmod 700 "$P" "$GH"
+[ -z "$token" ] && token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+
+if [ -n "$token" ]; then
+  printf '%s' "$token" | GH_CONFIG_DIR="$GH" gh auth login --hostname github.com --git-protocol https --with-token
+fi
+
+# git must use gh's credential helper (it reads GH_CONFIG_DIR at runtime -> per person)
+git config --global --replace-all 'credential.https://github.com.helper' ''
+git config --global --add 'credential.https://github.com.helper' '!/usr/bin/gh auth git-credential'
+git config --global --replace-all 'credential.https://gist.github.com.helper' ''
+git config --global --add 'credential.https://gist.github.com.helper' '!/usr/bin/gh auth git-credential'
+
+f="$K/$name.env"; touch "$f"; chmod 600 "$f"
+set_kv(){ if grep -q "^$1=" "$f"; then sed -i "s|^$1=.*|$1=$2|" "$f"; else printf '%s=%s\n' "$1" "$2" >> "$f"; fi; }
+set_kv GH_CONFIG_DIR "$GH"
+
+if GH_CONFIG_DIR="$GH" gh auth status >/dev/null 2>&1; then
+  login=$(GH_CONFIG_DIR="$GH" gh api user --jq .login)
+  id=$(GH_CONFIG_DIR="$GH" gh api user --jq .id)
+  set_kv GH_USER "$login"
+  set_kv GIT_AUTHOR_NAME "$login"
+  set_kv GIT_AUTHOR_EMAIL "${id}+${login}@users.noreply.github.com"
+  set_kv GIT_COMMITTER_NAME "$login"
+  set_kv GIT_COMMITTER_EMAIL "${id}+${login}@users.noreply.github.com"
+  echo "✓ $name authenticated as $login"
+  echo "  GH_CONFIG_DIR=$GH"
+  echo "  git identity: $login <${id}+${login}@users.noreply.github.com>"
+else
+  echo "GN_CONFIG_DIR set for $name, but no login yet."
+  echo "Authenticate with a token:  orca-gh-add $name <PAT>"
+  echo "or interactively (device code):  GH_CONFIG_DIR=$GH gh auth login --hostname github.com --git-protocol https"
+fi

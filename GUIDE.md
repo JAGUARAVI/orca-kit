@@ -109,6 +109,14 @@ agents use their own credentials. Put your name in a worktree once:
 echo <Name> > .orca-owner   # gitignored
 ```
 
+**Per-person GitHub auth** (commit/push/PR as your own account):
+```bash
+orca-gh-add <Name> <PAT>   # isolated gh config dir + git identity
+```
+The global git credential helper (`gh auth git-credential`) reads `GH_CONFIG_DIR` at runtime, so
+each person's `gh` **and** `git push` use their own token; commits are authored as them. See
+`docs/12-per-person-github-auth.md`.
+
 ## 6. Daily workflow
 ```bash
 orca-ide worktree create --name feat-x --agent opencode2 --prompt "implement X" --json
