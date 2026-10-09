@@ -27,3 +27,10 @@ gh pr edit <n> --add-label merge-ready
 See the shared GitHub Project for features/decisions.
 
 Full guide: `GUIDE.md`.
+
+## Your GitHub identity
+So your commits/pushes/PRs use **your** account, authenticate once:
+```bash
+orca-gh-add <YourName> <your-PAT>   # scopes: repo, workflow, project, read:org
+```
+Then `echo <YourName> > .orca-owner` in your worktree. See `docs/12-per-person-github-auth.md`.
