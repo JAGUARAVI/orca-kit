@@ -139,6 +139,9 @@ Config-driven by `/home/ubuntu/.orca-hackathon/config`. Runs every 60s via syste
 3. Escalation writes `~/.orca-merge/questions/<pr>.json`, labels `merge-conflict` +
    `needs-author-input`, and comments.
 4. The author agent answers: `orca-author-respond <author-label> <pr>` → next pass applies it.
+**Combined authorship:** when a resolution combines multiple people, the merged commit
+credits them with `Co-authored-by:` trailers (authors of the PR + authors of the
+conflicting base commits, minus the PR author), recorded in `~/.orca-merge/coauthors/<pr>.txt`.
 **Logs:** `~/.orca-merge/log/merge-agent.log`, `resolve-<pr>.log`.
 **Manual run:** `/home/ubuntu/bin/orca-merge-agent`.
 

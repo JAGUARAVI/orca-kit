@@ -38,6 +38,20 @@ because all agents run on this host).
 - `config.py`: `RATE=2` vs `RATE=5` → **escalated** to `agent:rate5`, author answered,
   merge agent applied → merged (PR #11); result kept both intents.
 
+## Combined authorship (co-authors)
+When a resolution combines work from more than one person, the resulting commit
+credits everyone with `Co-authored-by:` trailers.
+
+- The resolver computes who is being combined: the authors of the PR's own commits
+  **plus** the authors of the base-branch commits (since the merge-base) that touched
+  the conflicting files, minus the PR author.
+- That set is written to `~/.orca-merge/coauthors/<pr>.txt`.
+- The merge agent applies it to the squash commit (`gh pr merge --squash --subject …
+  --body …`), and the resolver also tags the resolution commit itself.
+
+Example: a PR from A conflicts with already-merged changes from B. The squash commit
+that lands on the base branch is authored by A and carries `Co-authored-by: B <b@…>`.
+
 ## Logs
 `~/.orca-merge/log/merge-agent.log`, `~/.orca-merge/log/resolve-<pr>.log`
 
