@@ -178,3 +178,12 @@ needs `--standalone`, stale pairing links (restart rotates them), merge agent lo
 - **Resolver exit codes:** `0` resolved/no-conflict, `10` escalated, `2` error.
 - **Scripts:** `setup-new-repo.sh`, `github/configure-repo.sh`, `github/setup-board.sh`,
   `merge-agent/*`, `person/*`.
+
+## Docs & templates
+- **Feature tour & productivity:** `docs/13-orca-features.md`
+- **Specs, ADRs & guardrails:** `docs/14-specs-and-architecture.md`
+- **Work division & delegation:** `docs/15-work-division-and-delegation.md`
+- **Agent rules:** `docs/16-agent-playbook.md` (+ `templates/AGENTS.md`)
+- **Conventions, glossary, FAQ:** `docs/17-faq-and-conventions.md`
+- **Templates:** `templates/{SPEC,ADR,AGENTS,TASK-BRIEF}.md`
+- **Team playbook:** `welcome/PLAYBOOK.md`
