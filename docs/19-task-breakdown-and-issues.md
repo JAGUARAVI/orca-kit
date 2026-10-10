@@ -86,3 +86,38 @@ Execute the **Orca runs** from the index: `worker-start` the wave, `check --wait
 - Human gates are real dependencies; model them as `blocked` until the sign-off lands in the PR.
 - The generator uses the **`gh` wrapper** for the acting person (`Avi-gh`, `Ekansh-gh`, …) so issues
   are created under that identity.
+
+## Auto-unblocking when a PR merges
+Task issues are born `blocked`. When a dependency merges, its dependents must become `ready`
+automatically.
+
+**`github/reconcile-task-issues.py`** does two things (idempotent — run on every merge):
+1. A merged PR completes a task → **close** that task's issue and strip its workflow label.
+   Match order: `Closes/Fixes/Resolves #N` in the PR body → `[ID]` tag in the title → `ID` in the
+   branch name (e.g. `feat/p0-01-scaffold` → `P0-01`).
+2. For every OPEN issue labeled `blocked`, if **all** of its `Blocked by: [#n — ID](…)`
+   dependencies are now closed → **remove `blocked`, add `ready`**.
+
+Dependencies are read from each issue's `## Dependencies` block (written by `create-task-issues.py`),
+so there is no separate graph to keep in sync.
+
+**Trigger — GitHub Action** (`github/task-reconcile.yml` → `.github/workflows/task-reconcile.yml`):
+```yaml
+on: { pull_request: { types: [closed] } }
+if: github.event.pull_request.merged == true
+# runs: python3 .github/scripts/reconcile-task-issues.py --repo "$GITHUB_REPOSITORY" --gh gh
+```
+Requires **Settings → Actions → General → Workflow permissions = Read and write** (the job needs
+`issues: write`).
+
+**Note on `Closes`:** GitHub only auto-closes an issue when the PR links it by **`#number`**
+(not by a `P0-01` token). The reconciler closes by `[ID]`/branch name regardless, so
+`Closes #3` and `feat/p0-01-…` both work.
+
+Install into a repo:
+```bash
+mkdir -p .github/workflows .github/scripts
+cp orca-kit/github/task-reconcile.yml   .github/workflows/task-reconcile.yml
+cp orca-kit/github/reconcile-task-issues.py .github/scripts/
+gh api -X PUT repos/<owner>/<repo>/actions/permissions/workflow -f default_workflow_permissions=write
+```

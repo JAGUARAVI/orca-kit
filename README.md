@@ -52,7 +52,9 @@ A repeatable pipeline (see `docs/19-task-breakdown-and-issues.md`):
        --deps docs/tasks/deps.json --phases P0 P1 --gh <Name>-gh
    ```
    Labels: `ready` / `blocked` / `in-progress` / `review` / `task` / `P0` / `P1`.
-3. Mirror the tasks as board cards and run them as Orca waves.
+3. Auto-unblock: `.github/workflows/task-reconcile.yml` runs `github/reconcile-task-issues.py`
+   on every merged PR — it closes the completed task and flips dependents from `blocked` to `ready`.
+4. Mirror the tasks as board cards and run them as Orca waves.
 
 ## Contents
 - `setup-new-repo.sh` — bootstrap a repository (clone + GitHub + host).

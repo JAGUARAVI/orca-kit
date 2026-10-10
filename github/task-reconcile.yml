@@ -1,0 +1,24 @@
+# Unblock dependent task issues when a PR merges.
+# Copy to .github/workflows/task-reconcile.yml in the repo.
+# Requires: Settings -> Actions -> General -> Workflow permissions = "Read and write".
+name: task-reconcile
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  reconcile:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconcile task issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/reconcile-task-issues.py --repo "$GITHUB_REPOSITORY" --gh gh
