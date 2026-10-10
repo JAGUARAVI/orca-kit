@@ -111,7 +111,7 @@ echo <Name> > .orca-owner   # gitignored
 
 **Per-person GitHub auth** (commit/push/PR as your own account):
 ```bash
-orca-gh-add <Name> <PAT>   # isolated gh config dir + git identity
+orca-gh-add <Name> <PAT>   # creates ~/.orca-people/<Name>/gh, sets GH_CONFIG_DIR + git identity
 ```
 The global git credential helper (`gh auth git-credential`) reads `GH_CONFIG_DIR` at runtime, so
 each person's `gh` **and** `git push` use their own token; commits are authored as them. See
@@ -179,11 +179,14 @@ needs `--standalone`, stale pairing links (restart rotates them), merge agent lo
 - **Scripts:** `setup-new-repo.sh`, `github/configure-repo.sh`, `github/setup-board.sh`,
   `merge-agent/*`, `person/*`.
 
-## Docs & templates
-- **Feature tour & productivity:** `docs/13-orca-features.md`
-- **Specs, ADRs & guardrails:** `docs/14-specs-and-architecture.md`
-- **Work division & delegation:** `docs/15-work-division-and-delegation.md`
-- **Agent rules:** `docs/16-agent-playbook.md` (+ `templates/AGENTS.md`)
-- **Conventions, glossary, FAQ:** `docs/17-faq-and-conventions.md`
-- **Templates:** `templates/{SPEC,ADR,AGENTS,TASK-BRIEF}.md`
-- **Team playbook:** `welcome/PLAYBOOK.md`
+## Plan to tasks to issues
+Turn a plan into a parallel-safe task graph and GitHub issues (doc `docs/19-task-breakdown-and-issues.md`):
+- **Index:** `docs/tasks/README.md` (template `templates/TASKS-README.md`) — IDs, `Depends on`,
+  `Owns` paths, human gates (⛩), and Orca runs.
+- **Briefs:** `docs/tasks/<PHASE>/<ID>-<slug>.md` (template `templates/TASK-BRIEF.md`), each with a
+  `Card: <ID>` header so tools can index it.
+- **Issues:** `github/create-task-issues.py --repo <owner/repo> --deps docs/tasks/deps.json`.
+  Creates one issue per brief, labels `ready`/`blocked` + `task` + phase, and appends clickable
+  `## Dependencies`. Idempotent. Labels: `github/labels.sh`.
+- **Board:** mirror tasks as cards (Owner + Worktree); label an issue `in-progress` when work starts,
+  `review` when the PR opens.

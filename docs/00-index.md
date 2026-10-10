@@ -20,6 +20,7 @@ New here? Read in order:
 16. `16-agent-playbook.md` — rules agents must follow in this repo
 17. `17-faq-and-conventions.md` — conventions, glossary, cost & security, FAQ
 18. `18-antigravity-agent.md` — Google Antigravity CLI (`agy`) as an agent
+19. `19-task-breakdown-and-issues.md` — plan → task graph → GitHub issues → board
 
 Templates (copy into your repo): `templates/SPEC.md`, `templates/ADR.md`,
 `templates/AGENTS.md`, `templates/TASK-BRIEF.md`.

@@ -40,10 +40,24 @@ multi-repo operation, troubleshooting.
 ## Team-facing (`welcome/`)
 `WELCOME.md` · `PLAYBOOK.md` (day-to-day) · `SUMMARY.md` · `INVITE-TEMPLATE.md`
 
+## Plan → tasks → issues → board
+A repeatable pipeline (see `docs/19-task-breakdown-and-issues.md`):
+1. Break the plan into `docs/tasks/<PHASE>/<ID>-<slug>.md` briefs + a `docs/tasks/README.md` index
+   (IDs, dependencies, path ownership, Orca runs). Templates: `templates/TASKS-README.md`,
+   `templates/TASK-BRIEF.md`.
+2. Create one GitHub issue per task with workflow labels and dependency links:
+   ```bash
+   github/labels.sh <owner/repo>
+   github/create-task-issues.py --repo <owner/repo> --root . \
+       --deps docs/tasks/deps.json --phases P0 P1 --gh <Name>-gh
+   ```
+   Labels: `ready` / `blocked` / `in-progress` / `review` / `task` / `P0` / `P1`.
+3. Mirror the tasks as board cards and run them as Orca waves.
+
 ## Contents
 - `setup-new-repo.sh` — bootstrap a repository (clone + GitHub + host).
 - `setup-existing-repo.sh` — apply the kit to an existing local repo (GitHub optional).
-- `github/` — `ci.yml`, `configure-repo.sh` (branch protection), `setup-board.sh`.
+- `github/` — `ci.yml`, `configure-repo.sh`, `setup-board.sh`, `labels.sh`, `create-task-issues.py`.
 - `merge-agent/` — `orca-merge-agent`, `orca-merge-resolve.sh`, `orca-author-respond`.
 - `person/` — `orca-keys-add`, `orca-gh-add`, `orca-route`, `orca-route-*`.
 - `systemd/` — service + timer units.

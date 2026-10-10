@@ -79,6 +79,8 @@ written; owner + worktree assigned; non-goals stated.
 **Done** (before `merge-ready`): acceptance criteria pass; tests added; docs/ADR updated; comment +
 status updated; PR is small and self-describing; no do-not-touch paths modified.
 
+See also: `19-task-breakdown-and-issues.md` (turn a plan into tasks, issues and a board).
+
 ## 14.8 Templates
 - `templates/SPEC.md` — product spec.
 - `templates/ADR.md` — decision record.
