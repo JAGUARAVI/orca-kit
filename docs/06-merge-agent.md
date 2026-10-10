@@ -33,24 +33,32 @@ because all agents run on this host).
 | Semantic overlap (same constant/logic) | ESCALATE to author |
 | Frozen / CODEOWNERS paths | ESCALATE |
 
-## Proven scenarios (<repo>)
+## Proven scenarios (orca-demo)
 - `features.py`: two agents appended to the same list → **auto-resolved** (kept both), merged (PR #8).
 - `config.py`: `RATE=2` vs `RATE=5` → **escalated** to `agent:rate5`, author answered,
   merge agent applied → merged (PR #11); result kept both intents.
 
-## Combined authorship (co-authors)
-When a resolution combines work from more than one person, the resulting commit
-credits everyone with `Co-authored-by:` trailers.
+## Authorship (co-authors)
+A PR is credited to **only the people who actually made commits in that PR**.
 
-- The resolver computes who is being combined: the authors of the PR's own commits
-  **plus** the authors of the base-branch commits (since the merge-base) that touched
-  the conflicting files, minus the PR author.
-- That set is written to `~/.orca-merge/coauthors/<pr>.txt`.
-- The merge agent applies it to the squash commit (`gh pr merge --squash --subject …
-  --body …`), and the resolver also tags the resolution commit itself.
+- The resolver derives the author set from `git log <merge-base>..<head>` — the commit
+  authors on the PR's own branch. The PR opener (your `gh` identity) is excluded from
+  the trailer list.
+- Base-branch authors who merely touched the same conflicting files are **not** credited.
+  Attribution follows *who committed in the PR*, not *who was nearby* in history.
+- The set is written to `~/.orca-merge/coauthors/<pr>.txt` and applied as
+  `Co-authored-by:` trailers on the squash commit (`gh pr merge --squash --subject …
+  --body …`); the resolver also tags the resolution commit itself.
 
-Example: a PR from A conflicts with already-merged changes from B. The squash commit
-that lands on the base branch is authored by A and carries `Co-authored-by: B <b@…>`.
+Example: PR #52 had two committers (`PR Person`, `Second Committer`) and `Base Person`
+had since edited the same file on `main`. The squash commit credits only
+`Co-authored-by: PR Person` and `Co-authored-by: Second Committer` — `Base Person` is absent.
+
+Notes:
+- If a PR has a single committer and that committer *is* the PR opener, no trailer is
+  added (nothing to combine).
+- To force credit for someone, have them commit (e.g. `git commit --author` or an
+  empty `--allow-empty` commit) inside the PR branch.
 
 ## Logs
 `~/.orca-merge/log/merge-agent.log`, `~/.orca-merge/log/resolve-<pr>.log`

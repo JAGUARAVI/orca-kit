@@ -24,21 +24,20 @@ if GIT_EDITOR=true git rebase "origin/$BASE_BRANCH" >"/tmp/rb.$PR.log" 2>&1; the
 mapfile -t files < <(git diff --name-only --diff-filter=U)
 echo "conflicting files: ${files[*]}" >&2
 
-# --- who does this integration combine? (for Co-authored-by credit) ---
+# --- who contributed to this PR? (for Co-authored-by credit) ---
+# Credit ONLY the people who actually made commits in THIS PR (merge-base..head).
+# Base-branch authors who happened to touch the same files are NOT credited: the
+# integration is attributed to the PR's own committers.
 cofile="$MERGE_DIR/coauthors/$PR.txt"; mkdir -p "$MERGE_DIR/coauthors"; : > "$cofile"
 mb=$(git merge-base "origin/$BASE_BRANCH" "origin/$head" 2>/dev/null || true)
 pr_log=$(git log --format='%an <%ae>' "$mb..origin/$head" 2>/dev/null | sort -u)
-base_log=""
-if [ -n "$mb" ] && [ "${#files[@]}" -gt 0 ]; then
-  base_log=$(git log --format='%an <%ae>' "$mb..origin/$BASE_BRANCH" -- "${files[@]}" 2>/dev/null | sort -u)
-fi
 pr_author=$(gh pr view "$PR" --json author --jq .author.login 2>/dev/null || true)
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   email=$(printf '%s' "$line" | sed -n 's/.*<\(.*\)>.*/\1/p')
   if [ -n "$pr_author" ] && [ -n "$email" ] && printf '%s' "$email" | grep -qi -- "$pr_author"; then continue; fi
   printf 'Co-authored-by: %s\n' "$line" >> "$cofile"
-done < <(printf '%s\n%s\n' "$pr_log" "$base_log" | sed '/^$/d' | sort -u)
+done < <(printf '%s\n' "$pr_log" | sed '/^$/d' | sort -u)
 if [ ! -s "$cofile" ]; then rm -f "$cofile"; else echo "co-authors: $(tr '\n' ';' < "$cofile")" >&2; fi
 
 prompt="A git rebase is in progress. Conflicting files: ${files[*]}.
