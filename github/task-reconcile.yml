@@ -14,6 +14,8 @@ permissions:
 
 jobs:
   reconcile:
+    # ONLY on a real merge. A `closed` event fires for both merged and unmerged closes;
+    # `merged` is true only for a genuine merge. (Adding a label does NOT fire this event.)
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:

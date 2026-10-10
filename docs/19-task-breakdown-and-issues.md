@@ -121,3 +121,16 @@ cp orca-kit/github/task-reconcile.yml   .github/workflows/task-reconcile.yml
 cp orca-kit/github/reconcile-task-issues.py .github/scripts/
 gh api -X PUT repos/<owner>/<repo>/actions/permissions/workflow -f default_workflow_permissions=write
 ```
+
+## Lessons / pitfalls (learned in production)
+- **`gh issue close` has no `--remove-label`.** Close first, then strip labels with
+  `gh issue edit <n> --remove-label …`. Passing `--remove-label` to `close` fails with
+  `unknown flag: --remove-label`.
+- **`pull_request: [closed]` fires for both merged and unmerged closes.** Always gate the job with
+  `if: github.event.pull_request.merged == true`, and re-check `mergedAt` in the script before
+  treating a PR as merged. (Adding a label does **not** fire this event; a stray run means some
+  other event type was added.)
+- **Close, then reconcile.** GitHub may auto-close an issue (e.g. via `Closes #n`) before the job
+  runs. The reconciler therefore also strips workflow labels from **already-closed** task issues.
+- **Never let the script's exit code hide state changes.** It runs each `gh` call separately so a
+  failure on one issue does not silently leave others half-done.
