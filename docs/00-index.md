@@ -21,6 +21,7 @@ New here? Read in order:
 17. `17-faq-and-conventions.md` — conventions, glossary, cost & security, FAQ
 18. `18-antigravity-agent.md` — Google Antigravity CLI (`agy`) as an agent
 19. `19-task-breakdown-and-issues.md` — plan → task graph → GitHub issues → board
+20. `20-ponytail.md` — Ponytail ruleset installed in every agent (write the least code that works)
 
 Templates (copy into your repo): `templates/SPEC.md`, `templates/ADR.md`,
 `templates/AGENTS.md`, `templates/TASK-BRIEF.md`.

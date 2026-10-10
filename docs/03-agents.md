@@ -31,3 +31,8 @@ distinct Orca agent entry, use Settings → Agents (host-owned) or run their
 Installed at `~/.local/bin/agy` (v1.3.3). Per-person isolation is via an isolated `HOME`
 (`~/.orca-people/<Name>/antigravity`) — official Google method. Wrappers:
 `<Name>-antigravity` (+ `<Name>-antigravity-login`). See `18-antigravity-agent.md`.
+
+
+## Ponytail (all agents)
+Every agent ships with the **Ponytail** ruleset (least-code-that-works; default level `full`).
+See `20-ponytail.md`. Switch level with `/ponytail lite|full|ultra|off`.

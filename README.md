@@ -8,6 +8,10 @@ gets its own git worktree; work lands through PRs; a background **merge agent** 
 resolves safe conflicts (crediting combined authors), and escalates hard questions to the agents that
 wrote the code. A shared GitHub Project board tracks features and decisions.
 
+## Agent ruleset: Ponytail
+Every agent ships with the **Ponytail** ruleset (write the least code that works; default level
+`full`) — see `docs/20-ponytail.md`. Switch with `/ponytail lite|full|ultra|off`.
+
 ## Quickstart (one command for a new repo)
 ```bash
 ./setup-new-repo.sh <owner/repo> [base_branch] [local_dir]
