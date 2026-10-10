@@ -41,7 +41,10 @@ echo "registered with Orca"
 
 if [ -n "$REPO" ] && gh auth status >/dev/null 2>&1; then
   for l in merge-ready merge-conflict needs-author-input; do gh label create "$l" --force >/dev/null 2>&1 || true; done
-  bash "$KIT/github/configure-repo.sh" "$REPO" "$BRANCH" || true
+  if ! bash "$KIT/github/configure-repo.sh" "$REPO" "$BRANCH" 2>/dev/null; then
+    echo "note: branch protection unavailable (private repo without GitHub Pro)."
+    echo "      The merge agent still handles conflicts on merge-ready PRs."
+  fi
   if [ -f /etc/systemd/system/orca-merge-agent@.timer ]; then
     sudo -n systemctl enable --now "orca-merge-agent@$NAME.timer" >/dev/null 2>&1 || true
     echo "enabled merge-agent instance: orca-merge-agent@$NAME.timer"
