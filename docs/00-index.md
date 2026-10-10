@@ -29,3 +29,4 @@ Templates (copy into your repo): `templates/SPEC.md`, `templates/ADR.md`,
 Human-facing explainers live in `../orca-welcome/`:
 - `WELCOME.md` (detailed), `PLAYBOOK.md` (day-to-day), `SUMMARY.md` (short),
   `INVITE.md` + `invites/<name>.md`.
+21. `21-self-hosted-runner.md` — run CI on the VM (self-hosted Actions runner, no GitHub minutes)
