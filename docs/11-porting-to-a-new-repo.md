@@ -10,6 +10,13 @@ Everything here is reusable. The bootstrap kit lives at `~/orca-kit`.
 /home/ubuntu/orca-kit/setup-new-repo.sh acme/api develop /srv/api
 ```
 
+## Existing local repo (no clone)
+```bash
+/home/ubuntu/orca-kit/setup-existing-repo.sh <local_dir> [base_branch]
+```
+Copies AGENTS.md + templates + docs/orca-kit + CI, writes the per-repo config, registers the repo
+in Orca, and — if a GitHub remote exists — creates labels, protection and the merge-agent timer.
+
 ## What it does
 1. Clones `<owner/repo>` into `local_dir` (default `/srv/<repo-name>`).
 2. Writes `/home/ubuntu/.orca-hackathon/config` with `REPO`, `BASE_BRANCH`, `REPO_DIR`.

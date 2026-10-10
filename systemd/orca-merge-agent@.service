@@ -1,0 +1,12 @@
+[Unit]
+Description=Orca automated merge agent (one pass) for %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Environment=HOME=/home/ubuntu
+Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:/usr/local/bin:/usr/bin:/bin
+Environment=ORCA_HACKATHON_CONFIG=/home/ubuntu/.orca-hackathon/%i.env
+ExecStart=/home/ubuntu/bin/orca-merge-agent

@@ -13,6 +13,13 @@ wrote the code. A shared GitHub Project board tracks features and decisions.
 ./setup-new-repo.sh <owner/repo> [base_branch] [local_dir]
 ```
 
+## Set up an existing local repo (no clone)
+```bash
+./setup-existing-repo.sh <local_dir> [base_branch]
+```
+Copies AGENTS.md + templates + docs + CI, writes the per-repo config, registers the repo in Orca,
+and — if a GitHub remote exists — creates labels, protection and the merge-agent timer.
+
 ## Full guide
 **[GUIDE.md](GUIDE.md)** — provisioning, per-person profiles, daily workflow, the merge agent,
 multi-repo operation, troubleshooting.
@@ -34,7 +41,8 @@ multi-repo operation, troubleshooting.
 `WELCOME.md` · `PLAYBOOK.md` (day-to-day) · `SUMMARY.md` · `INVITE-TEMPLATE.md`
 
 ## Contents
-- `setup-new-repo.sh` — bootstrap a repository.
+- `setup-new-repo.sh` — bootstrap a repository (clone + GitHub + host).
+- `setup-existing-repo.sh` — apply the kit to an existing local repo (GitHub optional).
 - `github/` — `ci.yml`, `configure-repo.sh` (branch protection), `setup-board.sh`.
 - `merge-agent/` — `orca-merge-agent`, `orca-merge-resolve.sh`, `orca-author-respond`.
 - `person/` — `orca-keys-add`, `orca-gh-add`, `orca-route`, `orca-route-*`.
