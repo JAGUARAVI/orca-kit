@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# opencode2 — default OpenCode v2 launcher.
+# Behaves like `Avi-opencode2 --standalone`: loads Avi's per-person env (API key +
+# OPENCODE_CONFIG) and forces a private server (--standalone) so the TUI does not
+# connect to the long-running keyless background service.
+#
+# Flag placement matters:
+#   * `run`, `mini`  : --standalone goes AFTER the subcommand   (opencode run --standalone)
+#   * bare TUI       : --standalone goes directly               (opencode --standalone)
+#   * management     : plugin/auth/mcp/models/... take no --standalone (left untouched)
+# If the caller already passed --standalone/--server/--attach, nothing is injected.
+set -euo pipefail
+
+REAL="/home/ubuntu/.opencode/bin/opencode"
+ENV_FILE="/home/ubuntu/.orca-keys/Avi.env"
+CFG_FILE="/home/ubuntu/.orca-keys/Avi.opencode.json"
+
+# 1) Avi's per-person identity (key, config dir, git identity)
+if [ -f "$ENV_FILE" ]; then set -a; . "$ENV_FILE"; set +a; fi
+[ -f "$CFG_FILE" ] && export OPENCODE_CONFIG="$CFG_FILE"
+
+# 2) if the caller already controls the server, don't inject
+inject=1
+for a in "$@"; do
+  case "$a" in
+    --standalone|--server|--server=*|--attach|--attach=*) inject=0 ;;
+  esac
+done
+
+sub="${1:-}"
+if [ "$inject" = 0 ]; then
+  exec "$REAL" "$@"
+fi
+
+case "$sub" in
+  run|mini)
+    # subcommand first, then --standalone, then the rest
+    shift
+    exec "$REAL" "$sub" --standalone "$@"
+    ;;
+  plugin|auth|mcp|models|session|service|upgrade|update|uninstall|api|stats|debug|completions|acp|serve)
+    exec "$REAL" "$@"
+    ;;
+  *)
+    # bare TUI (or a leading flag like -c/--continue, -s/--session, --prompt)
+    exec "$REAL" --standalone "$@"
+    ;;
+esac

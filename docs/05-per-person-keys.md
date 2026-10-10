@@ -48,3 +48,23 @@ Claude Code keeps one login per `~/.claude`. To support multiple people we set
 `CLAUDE_CONFIG_DIR` per person, so each has an independent account. Parth's login was
 moved to `.orca-people/Parth/claude` (`.credentials.json` + `.claude.json`). Avi has an
 empty config dir so he never inherits Parth's account.
+
+## opencode2 launcher (default is Avi-opencode2 --standalone)
+The bare `opencode2` command on the VM is a shim (at `~/.opencode/bin/opencode2`; the real
+binary is `~/.opencode/bin/opencode`). It now behaves exactly like `Avi-opencode2 --standalone`:
+
+1. sources `~/.orca-keys/Avi.env` (API key + git identity) and sets
+   `OPENCODE_CONFIG=~/.orca-keys/Avi.opencode.json`;
+2. forces `--standalone` (private server) so the TUI never connects to the long-running
+   **keyless** background service — which is what produced
+   `Access denied due to invalid subscription key or wrong API endpoint`;
+3. passes `--standalone` in the correct position per entrypoint:
+   `run`/`mini` → after the subcommand (`opencode run --standalone …`); bare TUI → directly;
+   management subcommands (`plugin`, `auth`, `mcp`, `models`, `session`, `service`, …) get **no**
+   flag. An explicit `--standalone`/`--server`/`--attach` from the caller is respected.
+
+Result: any invocation of `opencode2` — direct, via a `<Name>-opencode2` wrapper, or Orca-routed —
+authenticates and runs standalone. Per-person wrappers are unchanged.
+
+Restore the stock launcher from the backup if ever needed:
+`cp ~/.opencode/bin/opencode2.orig ~/.opencode/bin/opencode2`.
