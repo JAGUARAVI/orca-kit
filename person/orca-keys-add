@@ -4,7 +4,7 @@ name="${1:?usage: orca-keys-add <name>}"
 K=/home/ubuntu/.orca-keys
 P=/home/ubuntu/.orca-people/$name
 [ -f "$K/$name.env" ] && { echo "exists: $K/$name.env"; exit 1; }
-umask 077; mkdir -p "$K" "$P/gh" "$P/claude"
+umask 077; mkdir -p "$K" "$P/gh" "$P/claude" "$P/antigravity/.gemini/antigravity-cli"
 chmod 700 "$K" "$P" "$P/gh" "$P/claude"
 cat > "$K/$name.env" <<ENV
 # $name - per-person API keys + identity (chmod 600)
@@ -12,6 +12,8 @@ OPENCODE_FIREWORKS_API_KEY=
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 CURSOR_API_KEY=
+# Google Antigravity CLI (agy): isolated HOME holds the Google login
+ANTIGRAVITY_HOME=
 CLAUDE_CONFIG_DIR=$P/claude
 # GitHub identity — populate with: orca-gh-add $name [token]
 GH_CONFIG_DIR=$P/gh
@@ -29,6 +31,17 @@ cat > "$K/$name.opencode.json" <<JSON
   }}}
 }
 JSON
+cat > "/home/ubuntu/.local/bin/${name}-antigravity" <<WRAPAGY
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:$PATH"
+set -a; . "$K/$name.env"; set +a
+export HOME="$P/antigravity"
+mkdir -p "$HOME/.gemini/antigravity-cli"
+exec /home/ubuntu/.local/bin/agy "$@"
+WRAPAGY
+chmod +x "/home/ubuntu/.local/bin/${name}-antigravity"
+
 for pair in "opencode2:opencode2" "claude:claude" "codex:codex" "cursor:cursor-agent"; do
   w="${pair%%:*}"; b="${pair##*:}"
   cat > "/home/ubuntu/.local/bin/${name}-${w}" <<WRAP
@@ -47,5 +60,5 @@ export GH_CONFIG_DIR=$P/gh
 exec gh "\$@"
 WRAP
 chmod +x "/home/ubuntu/.local/bin/${name}-gh"
-echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor,gh}."
+echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor,gh,antigravity}."
 echo "next: orca-gh-add $name [token]"

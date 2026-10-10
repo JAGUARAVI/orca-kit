@@ -19,6 +19,7 @@ New here? Read in order:
 15. `15-work-division-and-delegation.md` — splitting work and delegating to agents
 16. `16-agent-playbook.md` — rules agents must follow in this repo
 17. `17-faq-and-conventions.md` — conventions, glossary, cost & security, FAQ
+18. `18-antigravity-agent.md` — Google Antigravity CLI (`agy`) as an agent
 
 Templates (copy into your repo): `templates/SPEC.md`, `templates/ADR.md`,
 `templates/AGENTS.md`, `templates/TASK-BRIEF.md`.

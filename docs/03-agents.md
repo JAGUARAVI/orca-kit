@@ -25,3 +25,9 @@ distinct Orca agent entry, use Settings → Agents (host-owned) or run their
 ## Per-person status
 - Avi: `Avi-opencode2` (Fireworks/Foundry), `Avi-claude` (config dir empty — login pending).
 - Parth: `Parth-claude` (logged in, isolated), other agents blank until keys added.
+
+
+## Google Antigravity (`agy`)
+Installed at `~/.local/bin/agy` (v1.3.3). Per-person isolation is via an isolated `HOME`
+(`~/.orca-people/<Name>/antigravity`) — official Google method. Wrappers:
+`<Name>-antigravity` (+ `<Name>-antigravity-login`). See `18-antigravity-agent.md`.
