@@ -61,3 +61,32 @@ TOKEN=$(gh api -X POST repos/<owner>/<repo>/actions/runners/registration-token -
 - Keep it on a **custom label** (`orca-vm`) rather than bare `self-hosted` so public/fork PRs
   can't target the VM accidentally.
 - Billing fix is still worth doing on the org side; the runner just unblocks CI meanwhile.
+
+## Pitfall: stale dev servers on the shared runner (port collisions)
+The runner shares the VM with agents running `vite`/`vite preview`. An agent's dev server
+left listening on a port the CI job needs makes jobs fail *even though the code is fine*:
+
+```
+Error: http://127.0.0.1:4173 is already used, make sure that nothing is running on the
+port/url or set reuseExistingServer:true in config.webServer.
+```
+
+This cannot happen on a GitHub-hosted runner (fresh VM each job) but **is** a real risk here.
+Observed: an orphaned `vite preview --port 4173` from `~/orca/workspaces/.../p0-20-app-integration`
+(reparented to PID 1 after its launcher exited) blocked the E2E job.
+
+**Fix applied (in the repo, commit `8c10544`):**
+- `e2e.yml` gains a **"Free E2E port"** step before anything else: `fuser -k -n tcp 4173 4174`
+  (falls back to `ss`+`kill`), then asserts the ports are free and fails loudly if not.
+- `playwright.config.ts`: in CI the webServer binds a dedicated port with `--strictPort`
+  (via `E2E_PORT`, default 4173) so it fails fast instead of silently reusing a foreign server;
+  `reuseExistingServer` stays `false` in CI. Local runs are unchanged.
+
+**General rule for this runner:** any job that binds a fixed port must free it first, because
+the machine is never clean. Alternatively isolate jobs with `E2E_PORT=<unique>` per job.
+
+**Manual cleanup of orphans:**
+```bash
+sudo ss -ltnp | grep -E ':4173|:5173|:4317'   # find squatters
+sudo fuser -k -n tcp 4173                      # free a port
+```
