@@ -127,7 +127,7 @@ to override it per repo.
 
 ---
 
-## ⚙️ Configuration (no hardcoded paths)
+## ⚙️ Configuration
 
 Everything machine-specific lives in **one file**. Copy the example and edit:
 
