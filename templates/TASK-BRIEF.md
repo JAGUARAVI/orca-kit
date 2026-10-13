@@ -24,4 +24,4 @@ Repo: <owner/repo> · Base: origin/main · Owner: <Name> · Card: <board card / 
 - [ ] <edge case → exact result>
 
 ## Definition of Done
-- [ ] acceptance passes · [ ] tests added · [ ] docs/ADR updated · [ ] comment+status updated · [ ] PR small
+- [ ] acceptance passes · [ ] tests added · [ ] docs/ADR updated · [ ] comment+status updated · [ ] PR self-describing

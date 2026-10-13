@@ -9,7 +9,7 @@ No new dependency without an ADR. If ambiguous or conflicting with the spec, STO
 
 ## Commits & branches
 `feat|fix|chore|docs(scope): message`. Branch `feat/<slug>`. Never force-push shared branches.
-Never commit secrets. Small PRs (< ~400 lines).
+Never commit secrets.
 
 ## Definition of Done (before labeling `merge-ready`)
 acceptance criteria pass · tests added · docs/ADR updated · linters/CI green · comment+status updated ·

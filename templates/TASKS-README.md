@@ -6,7 +6,7 @@ follows `templates/TASK-BRIEF.md` and can be pasted as the `--prompt` of `orca-i
 
 ## Rules that make the parallel split safe
 1. **Interfaces first.** One early task lands all shared types/schemas; after it merges the
-   contracts are frozen for the wave (changes need their own small PR).
+   contracts are frozen for the wave (changes need their own PR).
 2. **Dependencies frozen.** One early task installs all deps and writes the ADRs; no other task
    edits `package.json`/lockfile.
 3. **Disjoint ownership.** No two concurrently-runnable tasks own the same path. The "Owns" column

@@ -26,6 +26,8 @@ New here? Read in order:
 22. `22-efficiency-automations.md` — dispatcher, merge-agent guards, runner health, reaper, tracking loop
 23. `23-idea-to-task-dag.md` — idea → technical plan → parallel task DAG → issues → board
 24. `24-agent-skills.md` — agent skills shipped with the kit (and how to add more)
+25. `25-teamclaude-account-pooling.md` — pool individual Claude/Codex accounts so agents don't stall on quota
+26. `26-case-study.md` — the megathon run: 98 PRs, 5 people, one host (what worked, what didn't)
 
 Templates (copy into your repo): `templates/PRODUCT-PLAN.md`, `templates/SPEC.md`,
 `templates/ADR.md`, `templates/AGENTS.md`, `templates/TASKS-README.md`, `templates/TASK-BRIEF.md`.

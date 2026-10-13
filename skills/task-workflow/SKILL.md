@@ -48,7 +48,7 @@ github/setup-issues.sh <owner/repo> --deps docs/tasks/deps.json --phases P0 P1 P
 ## Rules an agent must follow
 - **Do not merge your own PR.** Implement, label `merge-ready`, stop.
 - **Respect `Owned paths`.** No opportunistic edits elsewhere; a shared path change needs its own PR.
-- **Freeze interfaces.** After the contracts task lands, a change to it is its own small PR.
+- **Freeze interfaces.** After the contracts task lands, a change to it is its own PR.
 - **Human gates (⛩) block.** Do not start a gated task until the sign-off lands on the issue/PR.
 - **Keep dependencies honest.** The index table is the single source of truth; never hand-edit
   `deps.json` — regenerate it.

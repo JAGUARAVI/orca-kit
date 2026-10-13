@@ -56,7 +56,10 @@ multi-repo operation, troubleshooting.
 | 20 | **Ponytail** ruleset in every agent |
 | 21 | **Self-hosted CI runner** (unbilled GitHub Actions) |
 | 22 | **Efficiency automations** (dispatcher, merge guards, runner health, reaper) |
-| 23 | **Idea → technical plan → parallel task DAG** (the whole pipeline) |
+| 23 | **Idea → product plan → technical plan → parallel task DAG** (the whole pipeline) |
+| 24 | **Agent skills** (what the agents can do, and how to add more) |
+| 25 | **TeamClaude account pooling** (pool Claude/Codex accounts so agents don't stall on quota) |
+| 26 | **Case study** (the megathon run: 98 PRs, 5 people, one host) |
 
 ## Templates (`templates/`) — copy into your repo
 `PRODUCT-PLAN.md` · `SPEC.md` · `ADR.md` · `AGENTS.md` · `TASKS-README.md` · `TASK-BRIEF.md`

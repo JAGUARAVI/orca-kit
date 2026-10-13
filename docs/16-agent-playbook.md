@@ -28,7 +28,7 @@ every agent reads it automatically. Agents: follow this unless a human overrides
 - [ ] Tests added or updated for the change.
 - [ ] `SPEC.md` / ADR / docs updated if behavior or decisions changed.
 - [ ] Linters/formatters clean; CI `checks` green.
-- [ ] PR is small and self-describing; scope matches the brief.
+- [ ] PR is self-describing; scope matches the brief.
 - [ ] Worktree comment + status updated (`in-review`).
 - [ ] No do-not-touch paths modified.
 

@@ -87,7 +87,7 @@ cross-cutting patterns, and **any new dependency**.
 
 ## 14.6 Interfaces-first, parallel-safe decomposition
 Parallelism is safe only when two tasks do not edit the same file. **Split along interfaces:**
-- define shared types/contracts first (one small PR),
+- define shared types/contracts first,
 - then assign each implementation file/module to a different agent,
 - integration is a thin step at the end.
 If two tasks must touch one file, run them **sequentially**.
@@ -96,7 +96,7 @@ If two tasks must touch one file, run them **sequentially**.
 **Ready** (before an agent starts): spec section exists; interfaces defined; acceptance criteria
 written; owner + worktree assigned; non-goals stated.
 **Done** (before `merge-ready`): acceptance criteria pass; tests added; docs/ADR updated; comment +
-status updated; PR is small and self-describing; no do-not-touch paths modified.
+status updated; PR is self-describing; no do-not-touch paths modified.
 
 See also: `19-task-breakdown-and-issues.md` (turn a plan into tasks, issues and a board).
 

@@ -64,7 +64,7 @@ monitor, wait, coordinate a DAG (use orchestration: `run-create`, `worker-start`
 - Never run two agents that edit the **same file** in parallel.
 - Define shared types/contracts in a tiny first PR; then everyone imports, nobody edits it.
 - One agent per worktree. New task → new worktree.
-- Keep PRs small; rebase early and often (the merge agent handles conflicts, but prevention is free).
+- Rebase early and often (the merge agent handles conflicts, but prevention is free).
 - Freeze public interfaces during a parallel wave.
 
 ## 15.7 Review ownership & merge
@@ -82,6 +82,6 @@ monitor, wait, coordinate a DAG (use orchestration: `run-create`, `worker-start`
 | Ekansh | `UI shell` | opencode2 |
 | Dan | `feature A` | codex |
 | Shaurya | `feature B` | claude |
-Week shape: Day 1 = spec + interfaces + ADRs (all hands, one small PR). Day 2–4 = parallel waves,
+Week shape: Day 1 = spec + interfaces + ADRs (all hands). Day 2–4 = parallel waves,
 one worktree per card. Day 5 = integration/hardening + review owners. Daily: 15-min sync on the
 board only (what moved, what is blocked).

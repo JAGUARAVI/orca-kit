@@ -124,11 +124,10 @@ via `.orca-owner`) plus **per-person GitHub auth** — see docs 05 and 12.
 2. **Agent-first create** with a self-contained brief (see the task-spec contract).
 3. **Fan out in waves**, not chains. Prefer 2–3 parallel workers over a deep dependency chain.
 4. **Keep comments + status current**; they are the shared state humans actually read.
-5. **Small PRs** (< ~400 changed lines). Big PRs are the #1 cause of conflicts and review stalls.
-6. **Constrain before you parallelize:** spec + interfaces + ownership first (doc 14).
-7. **Search sessions** to recover context instead of re-deriving it.
-8. **Automate the boring recurring work** (automations).
-9. **Sleep, don't close**, when a worker will resume.
+5. **Constrain before you parallelize:** spec + interfaces + ownership first (doc 14).
+6. **Search sessions** to recover context instead of re-deriving it.
+7. **Automate the boring recurring work** (automations).
+8. **Sleep, don't close**, when a worker will resume.
 10. **Review recursion:** have a second agent review a large PR before merge-ready.
 
 ## 13.11 Feature → when to use
