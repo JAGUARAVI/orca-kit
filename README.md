@@ -311,7 +311,7 @@ Megathon. See the full write-up (with screenshots and art) in
 |---|---|
 | People | **5** — 46 / 17 / 14 / 12 / 9 PRs each |
 | Build window | **~15 hours** (first commit → last merge) |
-| Merged PRs | **98** (~2.7 per person-hour) |
+| Merged PRs | **98** (~6.5/hour team-wide) |
 | Code | **+54,668 / −1,667** lines · 1,372 files |
 | Commits on `main` | 114 · **67 with `Co-authored-by` credit** |
 | Tasks | **59 briefs** (P0 23 · P1 14 · P2 22) → 74 issues |

@@ -43,7 +43,7 @@ The art pipeline was also agent-driven (art bible → approved assets → in-gam
 | Host | one VM running Orca + Claude Code / Codex / OpenCode v2 / Cursor |
 | Merge agent | **101 PRs** handled: 65 armed · 8 conflicts resolved · 3 escalated to authors |
 
-That is roughly **2.7 merged PRs per hour per person**, on a shared `main`, with two unrelated
+That is roughly **6.5 merged PRs per hour across the team** (1.3 per person), on a shared `main`, with two unrelated
 features landing in the same files repeatedly.
 
 ## What actually worked
@@ -104,7 +104,7 @@ would compress the tail.
 
 ## The numbers, in one place
 ```
-throughput         98 merged PRs · ~6.5 PRs/hour/person · 15h build window
+throughput         98 merged PRs · ~6.5 PRs/hour (team) · ~1.3 PRs/person/hour · 15h build window
 code               +54,668 / −1,667 lines · 1,372 files · TypeScript
 commits            114 on main · 67 with Co-authored-by
 tasks              59 briefs (P0 23 · P1 14 · P2 22) · 74 issues · 71 closed
@@ -128,7 +128,7 @@ Every failure above became a concrete artefact, not a note:
 
 ## Reproduce the numbers
 ```bash
-R=IIIT-ECell/megathon26-megathon-gs
+R=Megathon-Gs/life-of-rupee   # public full-history mirror
 gh pr list -R $R --state merged --limit 300 --json additions,deletions,changedFiles,author \
   --jq '"merged \(length)  +\(map(.additions)|add) -\(map(.deletions)|add)  files \(map(.changedFiles)|add)"'
 gh pr list -R $R --state merged --limit 300 --json author --jq 'map(.author.login)|group_by(.)|.[]|"\(.[0]) \(length)"'
