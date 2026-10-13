@@ -1,6 +1,6 @@
 # 26 — Case study: shipping a 59-task product with 5 people and a fleet of agents
 
-This is the run the kit was extracted from: **Paisa Street**, a financial-literacy game built for the
+This is the run the kit was extracted from: **Life of Rupee**, a financial-literacy game built for the
 Megathon, delivered in a single weekend. It is included because the numbers are real, the failures
 are real, and every lesson maps to a file in this kit.
 
@@ -35,7 +35,7 @@ The art pipeline was also agent-driven (art bible → approved assets → in-gam
 | | |
 |---|---|
 | People | **5** (`JAGUARAVI` 46 PRs · `Dan1718` 17 · `parth-tehlan` 14 · `EkanshWadhwa39` 12 · `shaurya-vsc` 9) |
-| Wall-clock | **~36 hours** (repo created `2026-10-09 17:17Z` → last push `2026-10-11 05:15Z`) |
+| Build window | **~15 hours** (first commit `2026-10-10 14:08Z` → last merge `2026-10-11 05:15Z`) |
 | Merged PRs | **98** (plus 4 closed unmerged) |
 | Commits on `main` | **114** — of which **67** carry `Co-authored-by` credit |
 | Code | **+54,668 / −1,667** lines across **1,372** files (TypeScript 921 KB, CSS 56 KB) |
@@ -104,7 +104,7 @@ would compress the tail.
 
 ## The numbers, in one place
 ```
-throughput         98 merged PRs · ~2.7 PRs/hour/person · 36h wall-clock
+throughput         98 merged PRs · ~6.5 PRs/hour/person · 15h build window
 code               +54,668 / −1,667 lines · 1,372 files · TypeScript
 commits            114 on main · 67 with Co-authored-by
 tasks              59 briefs (P0 23 · P1 14 · P2 22) · 74 issues · 71 closed

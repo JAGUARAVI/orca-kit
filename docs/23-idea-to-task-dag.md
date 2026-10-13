@@ -23,7 +23,7 @@ next begins.
 Run it all in one go (review after each stage — they are drafts until a human accepts them):
 
 ```bash
-orca-plan init "Paisa Street"          # scaffold templates (product plan, SPEC, AGENTS, docs/tasks)
+orca-plan init "Life of Rupee"          # scaffold templates (product plan, SPEC, AGENTS, docs/tasks)
 orca-plan all docs/idea.md             # ② ③ ④ ⑤ in order, then verify
 ```
 

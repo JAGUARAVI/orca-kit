@@ -224,24 +224,38 @@ stateDiagram-v2
 
 ## 📚 Documentation
 
-26 pages, each at one altitude. Start at **[`docs/00-index.md`](docs/00-index.md)**.
+28 pages, each at one altitude. Start at **[`docs/00-index.md`](docs/00-index.md)** — every page is linked below.
 
 | # | Doc |
 |---|---|
-| `01–12` | architecture · access · agents · model config · **per-person keys** · **merge agent** · security · runbook · troubleshooting · board · porting · **per-person GitHub auth** |
-| `13` | **Orca features & maximum-productivity patterns** |
-| `14` | **Specs, architecture & guardrails** — stop agents wandering |
-| `15` | **Dividing work & delegating to agents** |
-| `16` | **Agent playbook** — the rules agents follow |
-| `17` | **Conventions, glossary & FAQ** |
-| `19` | **Plan → tasks → issues → board** |
-| `20` | **Ponytail** ruleset in every agent (write the least code that works) |
-| `21` | **Self-hosted CI runner** (unbilled GitHub Actions) |
-| `22` | **Efficiency automations** — dispatcher, merge guards, runner health, reaper |
-| `23` | **Idea → product plan → technical plan → parallel task DAG** |
-| `24` | **Agent skills** — what the agents can do, and how to add more |
-| `25` | **TeamClaude account pooling** — pool Claude/Codex accounts so agents don't stall on quota |
-| `26` | **Case study** — the megathon run: 98 PRs, 5 people, one host |
+| 01 | [Architecture](docs/01-architecture.md) |
+| 02 | [Hosts & access](docs/02-hosts-and-access.md) |
+| 03 | [Agents](docs/03-agents.md) |
+| 04 | [OpenCode + DeepSeek-V4.1-Flash on Fireworks (Microsoft Foundry)](docs/04-opencode-foundry.md) |
+| 05 | [Per-person profiles (Plan B)](docs/05-per-person-keys.md) |
+| 06 | [Automated merge agent](docs/06-merge-agent.md) |
+| 07 | [Security](docs/07-security.md) |
+| 08 | [Runbook](docs/08-runbook.md) |
+| 09 | [Troubleshooting](docs/09-troubleshooting.md) |
+| 10 | [Task / decision board](docs/10-board-and-agents.md) |
+| 11 | [Porting to another repository](docs/11-porting-to-a-new-repo.md) |
+| 12 | [Per-person GitHub auth](docs/12-per-person-github-auth.md) |
+| 13 | [Orca features & maximum-productivity patterns](docs/13-orca-features.md) |
+| 14 | [Specs, architecture & guardrails (stopping agents from doing random things)](docs/14-specs-and-architecture.md) |
+| 15 | [Dividing work & delegating to agents](docs/15-work-division-and-delegation.md) |
+| 16 | [Agent playbook (how agents should behave in this repo)](docs/16-agent-playbook.md) |
+| 17 | [Conventions, glossary & FAQ](docs/17-faq-and-conventions.md) |
+| 18 | [Google Antigravity CLI (`agy`) as an agent](docs/18-antigravity-agent.md) |
+| 19 | [Turning a plan into tasks, issues and a board](docs/19-task-breakdown-and-issues.md) |
+| 20 | [Ponytail (agent ruleset: write the least code that works)](docs/20-ponytail.md) |
+| 21 | [Run CI on the VM (self-hosted Actions runner)](docs/21-self-hosted-runner.md) |
+| 22 | [Agentic workflow efficiency (automations that cut real waste)](docs/22-efficiency-automations.md) |
+| 23 | [Idea → product plan → technical plan → parallel task DAG (the whole pipeline)](docs/23-idea-to-task-dag.md) |
+| 24 | [Agent skills (what the agents can do, and how to add more)](docs/24-agent-skills.md) |
+| 25 | [Pooling individual Claude/Codex accounts with TeamClaude](docs/25-teamclaude-account-pooling.md) |
+| 26 | [Case study: shipping a 59-task product with 5 people and a fleet of agents](docs/26-case-study.md) |
+| 27 | [Supporting more agents in Orca](docs/27-adding-agents.md) |
+| 28 | [The agent-readable guide (one URL onboarding)](docs/28-agent-readable-guide.md) |
 
 ---
 
@@ -285,7 +299,7 @@ orca-kit/
 
 ## 📈 Proven at scale
 
-Extracted from a real weekend run — **Paisa Street**, a financial-literacy game built for the
+Extracted from a real weekend run — **Life of Rupee**, a financial-literacy game built for the
 Megathon. See the full write-up (with screenshots and art) in
 **[`docs/26-case-study.md`](docs/26-case-study.md)**.
 
@@ -296,7 +310,7 @@ Megathon. See the full write-up (with screenshots and art) in
 | Metric | Value |
 |---|---|
 | People | **5** — 46 / 17 / 14 / 12 / 9 PRs each |
-| Wall-clock | **~36 hours** |
+| Build window | **~15 hours** (first commit → last merge) |
 | Merged PRs | **98** (~2.7 per person-hour) |
 | Code | **+54,668 / −1,667** lines · 1,372 files |
 | Commits on `main` | 114 · **67 with `Co-authored-by` credit** |

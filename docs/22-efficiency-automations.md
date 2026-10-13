@@ -7,7 +7,7 @@ specific, **measured** loss — not a guess.
 
 | Signal | Value | Loss it represents |
 |---|---|---|
-| merged PRs / people / wall-clock | 98 PRs · 5 people · ~39h | throughput baseline |
+| merged PRs / people / build window | 98 PRs · 5 people · ~15h | throughput baseline |
 | PR cycle (open→merge) | p50 **5.6 min**, p90 37.6 min, max 72 min | queue tail |
 | merge-agent `arm failed` vs `armed` | **77 vs 65** | >1 wasted retry per merge |
 | conflicts needing resolution | 8 / 101 PRs | spec discipline worked |
