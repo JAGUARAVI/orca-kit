@@ -15,9 +15,9 @@ A shared **GitHub Project board** tracks features and decisions.
 - **Orca runtime**: a headless Orca server (`orca-serve.service`). Clients connect to it; the host does the work.
 - **Agents installed**: Claude Code, Codex, **OpenCode v2** (`opencode2`), Cursor CLI — each with per-person profiles.
 - **Model**: OpenCode is backed by **DeepSeek-V4.1-Flash** via **Fireworks on Microsoft Foundry**, with cost tracking.
-- **Repository**: `JAGUARAVI/orca-demo` on GitHub (private). PRs + required checks + auto-merge.
+- **Repository**: `<owner/repo>` on GitHub (private). PRs + required checks + auto-merge.
 - **Merge agent**: runs on the host, lands ready PRs, resolves conflicts, escalates to authors.
-- **Board**: a GitHub Project for features/decisions: https://github.com/users/JAGUARAVI/projects/1
+- **Board**: a GitHub Project for features/decisions: https://github.com/users/<owner>/projects/<n>
 - **Network**: everything private over Tailscale. The Orca port is not reachable from the public internet.
 
 ## 3. How it works (the model)
@@ -37,7 +37,7 @@ A shared **GitHub Project board** tracks features and decisions.
 ## 4. Get connected (one-time)
 1. **Join the Tailscale tailnet** (install Tailscale; accept the invite). Everything is private to the tailnet.
 2. **Open Orca** (desktop app) → Settings → Remote Orca Servers → **Add Server** → paste the access link
-   (ask Avi for `~/.orca-access-link`; treat it like a password). Or just open the **browser client** link.
+   (ask your admin for the access link (`~/.orca-access-link`); treat it like a password). Or just open the **browser client** link.
 3. **Verify**: you should see the `orca-demo` repo and shared worktrees.
 
 ## 5. Your profile
@@ -81,7 +81,7 @@ Watch the merge agent: `tail -f ~/.orca-merge/log/merge-agent.log`.
   escalated to the author, answered, and merged.
 
 ## 8. The board (decisions)
-https://github.com/users/JAGUARAVI/projects/1
+https://github.com/users/<owner>/projects/<n>
 - One card per feature or decision. Fields: **Status** (Todo/In Progress/Done), **Owner**, **Worktree**.
 - Use it to agree on what we build and settle disagreements; reference the card in your PR.
 
