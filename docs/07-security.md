@@ -2,7 +2,7 @@
 
 - **Network**: Orca port 6768 is firewalled to `lo` + `tailscale0` only
   (iptables, persisted). Public internet cannot reach it. SSH (22) remains open.
-- **Secrets**: `/home/ubuntu/.orca-keys/*.env` and `~/.orca-access-link` are `600`.
+- **Secrets**: `~/.orca-keys/*.env` and `~/.orca-access-link` are `600`.
   The Fireworks key also lives in the OpenCode auth store.
 - **Agent permissions**: Orca defaults agents to Yolo
   (`--dangerously-skip-permissions` etc.). For a shared box, switch to Manual in

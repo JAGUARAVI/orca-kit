@@ -3,17 +3,19 @@
 # Records combined authors (for Co-authored-by credit) in $MERGE_DIR/coauthors/<pr>.txt.
 # Exit: 0 resolved/no-conflict, 10 escalated, 2 setup error.
 set -uo pipefail
-CFG="${ORCA_HACKATHON_CONFIG:-/home/ubuntu/.orca-hackathon/config}"
+. "$(dirname "$0")/../lib/orca-kit.sh"
+CFG="${ORCA_HACKATHON_CONFIG:-${HACKATHON_DIR:-$HOME/.orca-hackathon}/config}"
 [ -f "$CFG" ] && { set -a; . "$CFG"; set +a; }
-REPO_DIR=${REPO_DIR:-/srv/orca-demo}
+REPO_DIR=${REPO_DIR:-$HOME/repo}
 BASE_BRANCH=${BASE_BRANCH:-main}
-MERGE_DIR=${MERGE_DIR:-/home/ubuntu/.orca-merge}
+MERGE_DIR=${MERGE_DIR:-$HOME/.orca-merge}
 MODEL=${MODEL:-fireworks-azure/Avi-DeepSeek-V4.1-Flash}
-AGENT=${AGENT:-/home/ubuntu/.local/bin/Avi-opencode2}
+AGENT=${AGENT:-${AGENT_BIN:-$HOME/.local/bin/opencode2}}
+GH=${GH:-gh}
 PR=$1; shift || true
 GUIDANCE=""; [ "${1:-}" = "--guidance" ] && GUIDANCE="${2:-}"
-head=$(gh pr view "$PR" --json headRefName --jq .headRefName)
-authors=$(gh pr view "$PR" --json labels --jq '[.labels[].name|select(startswith("agent:"))]|join(",")')
+head=$("$GH" pr view "$PR" --json headRefName --jq .headRefName)
+authors=$("$GH" pr view "$PR" --json labels --jq '[.labels[].name|select(startswith("agent:"))]|join(",")')
 work="$MERGE_DIR/work/$PR"
 git -C "$REPO_DIR" worktree prune >/dev/null 2>&1 || true
 rm -rf "$work"
@@ -31,7 +33,7 @@ echo "conflicting files: ${files[*]}" >&2
 cofile="$MERGE_DIR/coauthors/$PR.txt"; mkdir -p "$MERGE_DIR/coauthors"; : > "$cofile"
 mb=$(git merge-base "origin/$BASE_BRANCH" "origin/$head" 2>/dev/null || true)
 pr_log=$(git log --format='%an <%ae>' "$mb..origin/$head" 2>/dev/null | sort -u)
-pr_author=$(gh pr view "$PR" --json author --jq .author.login 2>/dev/null || true)
+pr_author=$("$GH" pr view "$PR" --json author --jq .author.login 2>/dev/null || true)
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   email=$(printf '%s' "$line" | sed -n 's/.*<\(.*\)>.*/\1/p')

@@ -4,22 +4,22 @@ Everything here is reusable. The bootstrap kit lives at `~/orca-kit`.
 
 ## One command
 ```bash
-/home/ubuntu/orca-kit/setup-new-repo.sh <owner/repo> [base_branch] [local_dir]
+~/orca-kit/setup-new-repo.sh <owner/repo> [base_branch] [local_dir]
 # examples
-/home/ubuntu/orca-kit/setup-new-repo.sh acme/new-project main /srv/new-project
-/home/ubuntu/orca-kit/setup-new-repo.sh acme/api develop /srv/api
+~/orca-kit/setup-new-repo.sh acme/new-project main /srv/new-project
+~/orca-kit/setup-new-repo.sh acme/api develop /srv/api
 ```
 
 ## Existing local repo (no clone)
 ```bash
-/home/ubuntu/orca-kit/setup-existing-repo.sh <local_dir> [base_branch]
+~/orca-kit/setup-existing-repo.sh <local_dir> [base_branch]
 ```
 Copies AGENTS.md + templates + docs/orca-kit + CI, writes the per-repo config, registers the repo
 in Orca, and — if a GitHub remote exists — creates labels, protection and the merge-agent timer.
 
 ## What it does
 1. Clones `<owner/repo>` into `local_dir` (default `/srv/<repo-name>`).
-2. Writes `/home/ubuntu/.orca-hackathon/config` with `REPO`, `BASE_BRANCH`, `REPO_DIR`.
+2. Writes `~/.orca-hackathon/config` with `REPO`, `BASE_BRANCH`, `REPO_DIR`.
 3. Adds `.github/workflows/ci.yml` (the required `checks` job) — via PR if `main` is protected.
 4. Creates labels `merge-ready`, `merge-conflict`, `needs-author-input`.
 5. Enables auto-merge and configures the `main-protection` ruleset
@@ -27,7 +27,7 @@ in Orca, and — if a GitHub remote exists — creates labels, protection and th
 6. Installs the merge-agent scripts into `~/bin` and registers the repo in Orca.
 
 ## Config (single source of truth)
-`/home/ubuntu/.orca-hackathon/config`:
+`~/.orca-hackathon/config`:
 ```
 REPO=<owner/repo>
 BASE_BRANCH=<branch>
@@ -38,15 +38,15 @@ The merge agent and resolver read this. Change it (or re-run setup) to point at 
 ## Running more than one repo
 Set a separate config per repo and export it for a separate agent instance:
 ```bash
-cp /home/ubuntu/.orca-hackathon/config /home/ubuntu/.orca-hackathon/api.env
+cp ~/.orca-hackathon/config ~/.orca-hackathon/api.env
 # edit api.env to the other repo, then:
-ORCA_HACKATHON_CONFIG=/home/ubuntu/.orca-hackathon/api.env /home/ubuntu/bin/orca-merge-agent
+ORCA_HACKATHON_CONFIG=~/.orca-hackathon/api.env ~/bin/orca-merge-agent
 ```
 For continuous multi-repo operation, add a systemd unit per `ORCA_HACKATHON_CONFIG`.
 
 ## Board
 ```bash
-/home/ubuntu/orca-kit/github/setup-board.sh <owner> "Feature Board" <owner/repo>
+~/orca-kit/github/setup-board.sh <owner> "Feature Board" <owner/repo>
 ```
 
 ## Requirements
@@ -58,7 +58,7 @@ For continuous multi-repo operation, add a systemd unit per `ORCA_HACKATHON_CONF
 ## Per-person profiles (same for any repo)
 ```bash
 orca-keys-add <Name>
-echo 'CLAUDE_CONFIG_DIR=/home/ubuntu/.orca-people/<Name>/claude' >> ~/.orca-keys/<Name>.env
+echo 'CLAUDE_CONFIG_DIR=~/.orca-people/<Name>/claude' >> ~/.orca-keys/<Name>.env
 # Then in any worktree:  echo <Name> > .orca-owner
 ```
 

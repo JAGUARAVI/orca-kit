@@ -1,16 +1,25 @@
+# Orca runtime server (headless). Template: %i = the user that runs Orca.
+# Install:
+#   sudo cp systemd/orca-serve.service /etc/systemd/system/orca-serve@.service
+#   # set the pairing address (Tailscale IP or hostname) in a drop-in:
+#   sudo systemctl edit orca-serve@<user>
+#     [Service]
+#     Environment=ORCA_PAIRING_ADDRESS=<tailscale-ip-or-host>
+#   sudo systemctl enable --now orca-serve@<user>
 [Unit]
-Description=Orca runtime server (headless)
-After=network-online.target tailscaled.service
+Description=Orca runtime server (headless) for user %i
+After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
-Environment=HOME=/home/ubuntu
-Environment=XDG_RUNTIME_DIR=/run/user/1000
-WorkingDirectory=/home/ubuntu
-ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" /usr/bin/orca-ide serve --port 6768 --pairing-address 100.105.35.26
+User=%i
+Group=%i
+Environment=HOME=/home/%i
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=ORCA_PAIRING_ADDRESS=
+WorkingDirectory=/home/%i
+ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" /usr/bin/orca-ide serve --port 6768 ${ORCA_PAIRING_ADDRESS:+--pairing-address ${ORCA_PAIRING_ADDRESS}}
 Restart=always
 RestartSec=3
 StandardOutput=journal

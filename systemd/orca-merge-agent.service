@@ -1,11 +1,18 @@
+# Orca automated merge agent — one pass. Template: %i = the system user that runs Orca.
+# Install:
+#   sudo cp systemd/orca-merge-agent@.service /etc/systemd/system/
+#   sudo cp systemd/orca-merge-agent@.timer   /etc/systemd/system/
+#   sudo systemctl enable --now orca-merge-agent@<user>.timer
+# The repo is selected by ORCA_HACKATHON_CONFIG (see EnvironmentFile / the per-repo env file).
 [Unit]
-Description=Orca automated merge agent (one pass)
+Description=Orca automated merge agent (one pass) for user %i
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=ubuntu
-Environment=HOME=/home/ubuntu
-Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/ubuntu/bin/orca-merge-agent
+User=%i
+Environment=HOME=/home/%i
+Environment=PATH=/home/%i/.local/bin:/home/%i/.opencode/bin:/home/%i/bin:/usr/local/bin:/usr/bin:/bin
+Environment=ORCA_HACKATHON_CONFIG=/home/%i/.orca-hackathon/config
+ExecStart=/home/%i/bin/orca-merge-agent

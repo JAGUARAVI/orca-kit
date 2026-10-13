@@ -1,0 +1,204 @@
+#!/usr/bin/env bash
+# orca-plan — turn an idea into a product plan, a technical plan, and a parallel task DAG.
+#
+# This automates the pipeline we ran by hand for the megathon:
+#
+#   idea (rough notes)
+#        └─► docs/product-plan.md              (product: users, scope, phases, gates)   [orca-plan product]
+#             └─► docs/technical-implementation-plan.md (engineering: components, interfaces) [orca-plan plan]
+#                  └─► docs/tasks/README.md    (index: IDs, deps, ownership, parallel runs)  [orca-plan tasks]
+#                       └─► docs/tasks/<PHASE>/<ID>-<slug>.md   (one brief per task)
+#                            └─► github issues + Orca worktrees (bin/orca-dispatch, github/setup-issues.sh)
+#
+# The script runs the *agent* steps (writing the plans, generating briefs) with a chosen agent and
+# fills the mechanical scaffolding around them from templates. Human gates stay human.
+#
+# Usage:
+#   orca-plan init    <name> [--root .]                # scaffold templates (product plan, SPEC, tasks)
+#   orca-plan product <idea-file> [--agent claude]     # idea          -> docs/product-plan.md
+#   orca-plan plan    [<product-plan>] [--agent claude]# product plan  -> docs/technical-implementation-plan.md
+#   orca-plan tasks   [--agent claude] [--phases P0 P1]# tech plan     -> index table + one brief per task
+#   orca-plan verify                                   # validate the index/briefs/deps graph
+#   orca-plan all     <idea-file>                      # product -> plan -> tasks, in order
+#
+# Everything is written under the repo root; nothing is pushed. Review, then run
+# `github/setup-issues.sh` to create the issues.
+set -uo pipefail
+. "$(dirname "$0")/../lib/orca-kit.sh"
+KIT="${KIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+MODEL=${MODEL:-fireworks-azure/Avi-DeepSeek-V4.1-Flash}
+
+cmd="${1:-}"; shift || true
+case "$cmd" in ""|-h|--help) sed -n '2,30p' "$0"; exit 0 ;; esac
+
+AGENT="opencode2"; ROOT="."; PHASES="P0 P1 P2"; NAME=""; IDEA=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent) AGENT="$2"; shift 2 ;;
+    --root)  ROOT="$2"; shift 2 ;;
+    --phases) PHASES="$2"; shift 2 ;;
+    *) if [[ -z "$NAME" ]]; then NAME="$1"; else IDEA="$1"; fi; shift ;;
+  esac
+done
+cd "$ROOT" || exit 1
+
+run_agent(){  # run_agent "<prompt>"
+  local prompt="$1"
+  case "$AGENT" in
+    opencode2) "${OPENCODE_BIN:-opencode2}" run --standalone --auto --model "$MODEL" "$prompt" </dev/null ;;
+    claude)    claude -p "$prompt" ;;
+    codex)     codex exec "$prompt" ;;
+    *)         echo "unknown agent $AGENT" >&2; return 1 ;;
+  esac
+}
+
+case "$cmd" in
+  init)
+    [[ -n "$NAME" ]] || { echo "usage: orca-plan init <name> [--root .]"; exit 2; }
+    mkdir -p docs/tasks docs/adr
+    [[ -f docs/tasks/README.md ]] || cp "$KIT/templates/TASKS-README.md" docs/tasks/README.md
+    [[ -f docs/adr/0001-initial-architecture.md ]] || cp "$KIT/templates/ADR.md" docs/adr/0001-initial-architecture.md
+    [[ -f SPEC.md ]] || cp "$KIT/templates/SPEC.md" SPEC.md
+    [[ -f AGENTS.md ]] || cp "$KIT/templates/AGENTS.md" AGENTS.md
+    [[ -f docs/PRODUCT-PLAN.md ]] || cp "$KIT/templates/PRODUCT-PLAN.md" docs/PRODUCT-PLAN.md
+    [[ -f docs/tasks/EXAMPLE-task-brief.md ]] || cp "$KIT/templates/TASK-BRIEF.md" docs/tasks/EXAMPLE-task-brief.md
+    sed -i "1s/.*/# Task breakdown — $NAME/" docs/tasks/README.md 2>/dev/null || true
+    echo "initialised docs/PRODUCT-PLAN.md + SPEC.md + AGENTS.md + docs/tasks."
+    echo "next: orca-plan product <idea.md>  ->  orca-plan plan  ->  orca-plan tasks"
+    ;;
+
+  product)
+    [[ -n "$IDEA" ]] || { echo "usage: orca-plan product <idea-file> [--agent claude]"; exit 2; }
+    [[ -f "$IDEA" ]] || { echo "no such idea file: $IDEA"; exit 1; }
+    [[ -f docs/PRODUCT-PLAN.md ]] || cp "$KIT/templates/PRODUCT-PLAN.md" docs/PRODUCT-PLAN.md
+    prompt="You are a product lead. Read the idea below and write a PRODUCT PLAN to
+docs/product-plan.md (replace the template at docs/PRODUCT-PLAN.md, or use it as the structure).
+It is written in PRODUCT language — problems, users, outcomes, scope — NOT code. Sections:
+1. One-line summary (what, for whom).
+2. Problem and why now, with the success signal.
+3. Users and jobs to be done (table).
+4. Goals and explicit non-goals.
+5. Scope by phase (P0/P1/P2...): in scope, out of scope, and the GATE that proves each phase done.
+6. Experience and flow in plain language.
+7. Product-level requirements: prioritised, verifiable, technology-free (FR/NFR table with an
+   observable check per row).
+8. Constraints, dependencies, and assumptions to validate.
+9. Risks (likelihood/impact/mitigation).
+10. Milestones and dates.
+11. Open questions for a named human decider (these become gates).
+12. Handoff links to the technical plan, SPEC, and task index.
+Keep it read-once length; be concrete; no code.
+---
+$(cat "$IDEA")"
+    echo "== generating docs/product-plan.md with $AGENT =="
+    run_agent "$prompt" | tail -5
+    [[ -f docs/product-plan.md ]] && echo "wrote docs/product-plan.md" || echo "WARN: product-plan.md not found"
+    ;;
+
+  plan)
+    # the argument, if given, is the product plan (or any spec) to implement
+    SRC="$IDEA"
+    [[ -n "$SRC" ]] || SRC="docs/product-plan.md"
+    [[ -f "$SRC" ]] || SRC="docs/PRODUCT-PLAN.md"
+    [[ -f "$SRC" ]] || { echo "usage: orca-plan plan [<product-plan>]  (none found; run 'orca-plan product <idea>' first)"; exit 2; }
+    prompt="You are a staff engineer. Read the product plan/spec below and write a TECHNICAL
+IMPLEMENTATION PLAN to docs/technical-implementation-plan.md. Structure it as:
+1. Objective and non-goals (derived from the product plan).
+2. System overview (components, data flow, external services) and the chosen stack, with short rationale.
+3. Workstreams (foundation, core, UI, content, quality, ...) — each a coherent area.
+4. Interfaces and contracts: the shared types/schemas that must be frozen first; name the single task that lands them.
+5. Phases (P0 playable slice, P1, P2, ...) with entry/exit gates, matching the product plan's phases.
+6. A task list per phase: ID (P0-01...), title, depends-on, owned paths (disjoint!), agent fit.
+   Rules: interfaces first; dependencies frozen; one writer per registry; human gates marked ⛩;
+   dependency depth <= 3. Number tasks so IDs are stable.
+7. Risks, and what is explicitly out of scope.
+Be concrete and terse. Do not write code beyond signatures.
+---
+$(cat "$SRC")"
+    echo "== generating docs/technical-implementation-plan.md from $SRC with $AGENT =="
+    run_agent "$prompt" | tail -5
+    [[ -f docs/technical-implementation-plan.md ]] && echo "wrote docs/technical-implementation-plan.md" || echo "WARN: plan file not found"
+    ;;
+
+  tasks)
+    [[ -f docs/technical-implementation-plan.md ]] || { echo "run 'orca-plan plan <idea>' first"; exit 1; }
+    echo "== generating the task index table =="
+    run_agent "Read docs/technical-implementation-plan.md. Produce docs/tasks/README.md containing:
+1. 'Rules that make the parallel split safe' (interfaces first, frozen deps, disjoint ownership,
+   single-writer registries, per-task files, human gates ⛩, runs stay shallow).
+2. A mermaid dependency graph.
+3. A markdown table with EXACTLY these columns:
+   | ID | Task | Depends on | Owns (may edit) | Agent fit |
+   One row per task. IDs P0-01..., Depends on lists prerequisite IDs (comma separated) or —,
+   Owns is the full list of paths the task may edit (must be disjoint within a wave).
+4. A 'Parallel runs' table: | Run | Tasks | Max parallel agents | grouping tasks into the shallowest
+   waves such that no two tasks in a wave share an owned path.
+Output only the file." | tail -5
+    echo "== generating one brief per task =="
+    for PHASE in $PHASES; do
+      mkdir -p "docs/tasks/$PHASE"
+      run_agent "Read docs/tasks/README.md. For every task in phase $PHASE, write one brief file
+docs/tasks/$PHASE/<ID>-<slug>.md following templates/TASK-BRIEF.md. Each brief's first line is
+'# Task brief: <title>' and it contains a line 'Repo: <repo> · Base: origin/main · Owner: <assign> ·
+Card: <ID> · Depends on: <ids>'. Include sections Target / Change / Constraints / Ownership /
+Observable acceptance / Definition of Done. Output only files." | tail -3
+    done
+    echo "done. Next: put the index table into docs/tasks/README.md, then run:"
+    echo "  $KIT/github/deps-from-index.py docs/tasks/README.md -o docs/tasks/deps.json"
+    echo "  $KIT/github/setup-issues.sh <owner/repo> --deps docs/tasks/deps.json --phases $PHASES"
+    ;;
+
+  verify)
+    [[ -f docs/tasks/README.md ]] || { echo "no docs/tasks/README.md"; exit 1; }
+    echo "== dependency graph from the index =="
+    python3 "$KIT/github/deps-from-index.py" docs/tasks/README.md -o docs/tasks/deps.json
+    echo "== briefs present? =="
+    for PHASE in $PHASES; do
+      n=$(ls docs/tasks/$PHASE/*.md 2>/dev/null | wc -l)
+      echo "  $PHASE: $n briefs"
+    done
+    echo "== ownership collisions within a phase (warning) =="
+    python3 - "$PHASES" <<'PY'
+import re,sys,glob,os,collections
+phases=sys.argv[1].split()
+rows={}
+for line in open("docs/tasks/README.md"):
+    if not line.strip().startswith("|"): continue
+    cells=[c.strip() for c in line.strip().strip("|").split("|")]
+    if len(cells)<4: continue
+    m=re.search(r"[A-Za-z0-9]+-\d+",cells[0])
+    if not m: continue
+    rows[m.group(0)]=cells[3]
+def paths(cell):
+    return re.findall(r"`([^`]+)`",cell)
+dup=collections.defaultdict(list)
+for pid,own in rows.items():
+    for p in paths(own):
+        dup[p].append(pid)
+bad={p:v for p,v in dup.items() if len(v)>1}
+if bad:
+    print("  possible shared ownership (must not run in the same wave):")
+    for p,v in sorted(bad.items())[:20]: print(f"    {p}: {', '.join(v)}")
+else:
+    print("  none found")
+PY
+    ;;
+
+  all)
+    [[ -n "$IDEA" ]] || { echo "usage: orca-plan all <idea-file> [--agent claude] [--phases P0 P1 P2]"; exit 2; }
+    [[ -f "$IDEA" ]] || { echo "no such idea file: $IDEA"; exit 1; }
+    echo "### 1/3 product plan"
+    "$0" product "$IDEA" --root "$ROOT" --agent "$AGENT"
+    echo "### 2/3 technical plan"
+    "$0" plan --root "$ROOT" --agent "$AGENT"
+    echo "### 3/3 task DAG (index + briefs)"
+    "$0" tasks --root "$ROOT" --agent "$AGENT" --phases "$PHASES"
+    echo "### verifying"
+    "$0" verify --root "$ROOT" --phases "$PHASES"
+    echo "Review docs/product-plan.md and docs/technical-implementation-plan.md, then create issues:"
+    echo "  $KIT/github/deps-from-index.py docs/tasks/README.md -o docs/tasks/deps.json"
+    echo "  $KIT/github/setup-issues.sh <owner/repo> --deps docs/tasks/deps.json --phases $PHASES"
+    ;;
+
+  *) sed -n '2,30p' "$0"; exit 1 ;;
+esac

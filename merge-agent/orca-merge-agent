@@ -1,59 +1,112 @@
 #!/usr/bin/env bash
 # Automated merge agent for an Orca hackathon repo. Repo/branch come from
-# /home/ubuntu/.orca-hackathon/config (override with ORCA_HACKATHON_CONFIG).
+# $ORCA_HACKATHON_CONFIG (default $HACKATHON_DIR/config).
 # When an integration combines multiple people, the merge commit credits them
 # with Co-authored-by trailers ($MERGE_DIR/coauthors/<pr>.txt).
+#
+# Efficiency guards (learned in production):
+#   * SKIPS DRAFT PRs — GitHub refuses to merge or arm a draft, so retrying one every pass is
+#     pure waste (we logged 77 `arm failed` against 65 successful arms). A draft's issue label
+#     is corrected so it stops asking to be merged.
+#   * Backoff — a PR that fails to arm is retried at most every N passes and max M times, so a
+#     permanently-unmergeable PR stops monopolising the loop.
+#   * Real error logging — the failing `gh` message is captured, not just "arm failed".
+#   * Queue observability — each pass logs how many merge-ready PRs are pending.
 set -uo pipefail
-CFG="${ORCA_HACKATHON_CONFIG:-/home/ubuntu/.orca-hackathon/config}"
+. "$(dirname "$0")/../lib/orca-kit.sh"
+
+CFG="${ORCA_HACKATHON_CONFIG:-${HACKATHON_DIR:-$HOME/.orca-hackathon}/config}"
 [ -f "$CFG" ] && { set -a; . "$CFG"; set +a; }
-REPO_DIR=${REPO_DIR:-/srv/orca-demo}
-MERGE_DIR=${MERGE_DIR:-/home/ubuntu/.orca-merge}
-BIN=${BIN:-/home/ubuntu/bin}
-mkdir -p "$MERGE_DIR"/{questions,answers,work,log,coauthors}
+REPO_DIR=${REPO_DIR:-$HOME/repo}
+MERGE_DIR=${MERGE_DIR:-$HOME/.orca-merge}
+BIN=${BIN:-${BIN_DIR:-$HOME/bin}}
+GH=${GH:-gh}                       # gh wrapper (e.g. Avi-gh)
+RETRY_EVERY=${RETRY_EVERY:-3}      # only retry a failing PR every Nth pass
+MAX_ATTEMPTS=${MAX_ATTEMPTS:-5}    # give up (label needs-author-input) after this many failures
+mkdir -p "$MERGE_DIR"/{questions,answers,work,log,coauthors,state}
 cd "$REPO_DIR" || exit 1
 log(){ echo "$(date -Is) $*" | tee -a "$MERGE_DIR/log/merge-agent.log"; }
 
+pass_file="$MERGE_DIR/state/pass"; pass=$(( $(cat "$pass_file" 2>/dev/null || echo 0) + 1 )); echo "$pass" > "$pass_file"
+
 # Merge PR n via auto-merge; if co-authors were recorded, credit them on the squash commit.
 arm(){
-  local n="$1" cofile="$MERGE_DIR/coauthors/$n.txt"
+  local n="$1" cofile="$MERGE_DIR/coauthors/$n.txt" err
   if [ -s "$cofile" ]; then
     local subj body
-    subj=$(gh pr view "$n" --json title --jq .title 2>/dev/null)
-    body=$(gh pr view "$n" --json body --jq .body 2>/dev/null)
-    if gh pr merge "$n" --squash --auto --subject "$subj" \
-         --body "$(printf '%s\n\n%s' "$body" "$(cat "$cofile")")" >/dev/null 2>&1; then
+    subj=$("$GH" pr view "$n" --json title --jq .title 2>/dev/null)
+    body=$("$GH" pr view "$n" --json body --jq .body 2>/dev/null)
+    if "$GH" pr merge "$n" --squash --auto --subject "$subj" \
+         --body "$(printf '%s\n\n%s' "$body" "$(cat "$cofile")")" >/tmp/arm.$n 2>&1; then
       log "#$n co-authors -> $(tr '\n' ';' < "$cofile")"
       rm -f "$cofile"; return 0
     fi
-    return 1
+    err=$(tail -1 /tmp/arm.$n); echo "$err" > "$MERGE_DIR/state/$n.err"; return 1
   fi
-  gh pr merge "$n" --squash --auto >/dev/null 2>&1
+  if "$GH" pr merge "$n" --squash --auto >/tmp/arm.$n 2>&1; then return 0; fi
+  err=$(tail -1 /tmp/arm.$n); echo "$err" > "$MERGE_DIR/state/$n.err"; return 1
 }
 
-for n in $(gh pr list --label merge-ready --state open --json number,createdAt --jq 'sort_by(.createdAt)|.[].number'); do
+# collect merge-ready PRs with their draft + mergeable state up front
+mapfile -t rows < <("$GH" pr list --label merge-ready --state open --limit 200 \
+  --json number,createdAt,isDraft,mergeable --jq 'sort_by(.createdAt)|.[]|"\(.number)\t\(.isDraft)\t\(.mergeable)"')
+log "pass #$pass: ${#rows[@]} merge-ready PR(s) pending"
+
+for row in "${rows[@]}"; do
+  IFS=$'\t' read -r n isdraft mergeable <<<"$row"
+
+  # --- guard 1: never spend cycles on a draft ---
+  if [ "$isdraft" = "true" ]; then
+    # correct the label once so the PR stops advertising itself as merge-ready
+    "$GH" pr edit "$n" --remove-label merge-ready >/dev/null 2>&1 || true
+    "$GH" pr comment "$n" --body "**merge-agent:** PR is a draft — removed \`merge-ready\`. Mark it ready for review to re-queue." >/dev/null 2>&1 || true
+    log "#$n SKIP (draft) — merge-ready removed"
+    continue
+  fi
+
+  # --- guard 2: backoff on repeated failure ---
+  attempts=$(( $(cat "$MERGE_DIR/state/$n.attempts" 2>/dev/null || echo 0) ))
+  if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
+    # already escalated; don't retry unless something changed
+    log "#$n SKIP (gave up after $attempts attempts: $(cat "$MERGE_DIR/state/$n.err" 2>/dev/null | head -1))"
+    continue
+  fi
+  if [ "$attempts" -gt 0 ] && [ $(( pass % RETRY_EVERY )) -ne 0 ]; then
+    log "#$n backoff (attempt $attempts/$MAX_ATTEMPTS, retry every ${RETRY_EVERY} passes)"
+    continue
+  fi
+
   guidance=""
   [ -f "$MERGE_DIR/answers/$n.json" ] && guidance=$(jq -r .answer "$MERGE_DIR/answers/$n.json")
-  if gh pr update-branch "$n" >/tmp/u.$n 2>&1; then
-    arm "$n" && { log "#$n armed"; continue; }
-    arm "$n" || true; log "#$n arm failed"; continue
+
+  fail(){
+    echo $(( attempts + 1 )) > "$MERGE_DIR/state/$n.attempts"
+    log "#$n arm failed (attempt $(( attempts + 1 ))/$MAX_ATTEMPTS): $(cat "$MERGE_DIR/state/$n.err" 2>/dev/null | head -1)"
+  }
+
+  if "$GH" pr update-branch "$n" >/tmp/u.$n 2>&1; then
+    if arm "$n"; then log "#$n armed"; continue; fi
+    fail; continue
   elif grep -qi 'up to date' /tmp/u.$n; then
-    arm "$n" && { log "#$n up-to-date armed"; continue; }
-    arm "$n" || true; log "#$n arm failed"; continue
+    if arm "$n"; then log "#$n up-to-date armed"; continue; fi
+    fail; continue
   fi
+
   log "#$n conflict -> resolving${guidance:+ (with author guidance)}"
   if "$BIN/orca-merge-resolve.sh" "$n" ${guidance:+--guidance "$guidance"} 2>>"$MERGE_DIR/log/resolve-$n.log"; then rc=0; else rc=$?; fi
   if [ "$rc" = 0 ]; then
-    gh pr edit "$n" --remove-label merge-conflict >/dev/null 2>&1
-    gh pr edit "$n" --remove-label needs-author-input >/dev/null 2>&1
+    "$GH" pr edit "$n" --remove-label merge-conflict >/dev/null 2>&1
+    "$GH" pr edit "$n" --remove-label needs-author-input >/dev/null 2>&1
     rm -f "$MERGE_DIR/answers/$n.json"
-    if arm "$n"; then log "#$n RESOLVED + armed"; else
-      gh pr merge "$n" --squash --auto >/dev/null 2>&1 && log "#$n RESOLVED + armed (plain)"
+    if arm "$n"; then log "#$n RESOLVED + armed"; rm -f "$MERGE_DIR/state/$n.attempts"; else
+      "$GH" pr merge "$n" --squash --auto >/dev/null 2>&1 && { log "#$n RESOLVED + armed (plain)"; rm -f "$MERGE_DIR/state/$n.attempts"; } || fail
     fi
   else
-    gh pr edit "$n" --add-label merge-conflict >/dev/null 2>&1
-    gh pr edit "$n" --add-label needs-author-input >/dev/null 2>&1
+    "$GH" pr edit "$n" --add-label merge-conflict >/dev/null 2>&1
+    "$GH" pr edit "$n" --add-label needs-author-input >/dev/null 2>&1
     q=$(jq -r .question "$MERGE_DIR/questions/$n.json" 2>/dev/null)
-    gh pr comment "$n" --body "**merge-agent:** escalated to author agent(s) — ${q}" >/dev/null 2>&1
+    "$GH" pr comment "$n" --body "**merge-agent:** escalated to author agent(s) — ${q}" >/dev/null 2>&1
     log "#$n ESCALATED: $q"
+    rm -f "$MERGE_DIR/state/$n.attempts"
   fi
 done

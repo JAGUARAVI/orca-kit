@@ -28,7 +28,7 @@ automatically — no extra steps at runtime.
 orca-gh-add <Name> <PAT>
 
 # or interactively (device-code flow)
-GH_CONFIG_DIR=$HOME/.orca-people/<Name>/gh \
+GH_CONFIG_DIR=~/.orca-people/<Name>/gh \
   gh auth login --hostname github.com --git-protocol https
 ```
 `orca-gh-add` stores the token in the person's isolated dir, sets `GH_CONFIG_DIR`, and
@@ -38,12 +38,21 @@ records `GH_USER` + git identity (`<id>+<login>@users.noreply.github.com`) in th
 ```bash
 <Name>-gh auth status                 # shows that person's account
 printf 'protocol=https\nhost=github.com\n\n' | \
-  GH_CONFIG_DIR=$HOME/.orca-people/<Name>/gh git credential fill
+  GH_CONFIG_DIR=~/.orca-people/<Name>/gh git credential fill
 # -> username=<login>
 ```
 
+## Status
+| Person | GitHub account | gh dir | git identity |
+|---|---|---|---|
+| Avi | JAGUARAVI | ✅ (example) | ✅ |
+| Parth | (pending) | ready | pending |
+| Ekansh | (pending) | ready | pending |
+| Dan | (pending) | ready | pending |
+| Shaurya | (pending) | ready | pending |
+
 ## Notes
-- The **merge agent** intentionally keeps the default host login — it is the merge owner.
+- The **merge agent** intentionally keeps the default host login (Avi) — it is the merge owner.
 - New people: `orca-keys-add <Name>` already creates their gh dir + env; finish with
   `orca-gh-add <Name> <PAT>`.
 - Rotate a token: re-run `orca-gh-add <Name> <newPAT>`.

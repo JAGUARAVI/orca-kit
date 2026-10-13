@@ -4,6 +4,25 @@ A complete, reusable setup for **parallel multi-agent coding with automatic merg
 single self-hosted host. This guide covers the host, the workflow, the merge agent, and
 how to apply it all to any repository.
 
+## Configuration (no hardcoded paths)
+Everything machine-specific lives in **one file** — copy `orca-kit.env.example` to
+`~/.orca-kit.env` (or `/etc/orca-kit.env`) and edit:
+
+```bash
+KIT_HOME=~           # sibling trees (orca-docs, orca-merge, orca-keys, ...)
+KIT_OWNER=me         # default owner for `.orca-owner` fallbacks / routing
+MODEL=<provider/model>
+GH=gh                # or a <Name>-gh wrapper
+REPO_SLUG=<owner/repo>   # else discovered from `git remote origin`
+```
+
+Every script sources `lib/orca-kit.sh`, which loads that file and fills any gap with computed
+defaults — so the kit runs with no config on a single-user machine and scales to a team.
+
+**Placeholders in this kit:** `<owner>`, `<owner/repo>`, `<Name>`, `<PHASE>` (P0/P1/…), `<ID>`,
+`<repo-dir>`. Worked examples that use a specific repo/name are labelled *example*.
+
+
 ## Contents
 0. [What you get](#0-what-you-get)
 1. [Architecture](#1-architecture)
@@ -86,7 +105,7 @@ Then:
 ```
 It:
 1. clones the repo to `local_dir` (default `/srv/<repo-name>`);
-2. writes `/home/ubuntu/.orca-hackathon/config` (`REPO`, `BASE_BRANCH`, `REPO_DIR`);
+2. writes `~/.orca-hackathon/config` (`REPO`, `BASE_BRANCH`, `REPO_DIR`);
 3. adds `.github/workflows/ci.yml` (the required `checks` job) — via PR if protected;
 4. creates labels `merge-ready`, `merge-conflict`, `needs-author-input`;
 5. enables auto-merge and configures the `main-protection` ruleset (strict `checks`);
@@ -98,7 +117,7 @@ Change the required approvals in `github/configure-repo.sh` (default `0`; set `1
 Each person gets an env file, wrappers, and an isolated Claude config dir:
 ```bash
 orca-keys-add <Name>
-echo 'CLAUDE_CONFIG_DIR=/home/ubuntu/.orca-people/<Name>/claude' >> ~/.orca-keys/<Name>.env
+echo 'CLAUDE_CONFIG_DIR=~/.orca-people/<Name>/claude' >> ~/.orca-keys/<Name>.env
 # first login:
 <Name>-claude
 ```
@@ -129,7 +148,7 @@ gh pr edit <n> --add-label merge-ready       # hand off to the merge agent
 Move your card through the board's **Status** column; set **Owner** and **Worktree**.
 
 ## 7. The merge agent
-Config-driven by `/home/ubuntu/.orca-hackathon/config`. Runs every 60s via systemd
+Config-driven by `~/.orca-hackathon/config`. Runs every 60s via systemd
 (`orca-merge-agent.timer`).
 **Flow:**
 1. PR labeled `merge-ready` → update branch onto base → enable auto-merge.
@@ -143,7 +162,7 @@ Config-driven by `/home/ubuntu/.orca-hackathon/config`. Runs every 60s via syste
 credits them with `Co-authored-by:` trailers (authors of the PR + authors of the
 conflicting base commits, minus the PR author), recorded in `~/.orca-merge/coauthors/<pr>.txt`.
 **Logs:** `~/.orca-merge/log/merge-agent.log`, `resolve-<pr>.log`.
-**Manual run:** `/home/ubuntu/bin/orca-merge-agent`.
+**Manual run:** `~/bin/orca-merge-agent`.
 
 ## 8. The shared board
 ```bash
@@ -154,9 +173,9 @@ Built-in **Status** (Todo/In Progress/Done) plus **Owner** and **Worktree** fiel
 ## 9. Running multiple repositories
 Keep one config per repo and run an agent instance per config:
 ```bash
-cp /home/ubuntu/.orca-hackathon/config /home/ubuntu/.orca-hackathon/<name>.env
+cp ~/.orca-hackathon/config ~/.orca-hackathon/<name>.env
 # edit it for the other repo, then:
-ORCA_HACKATHON_CONFIG=/home/ubuntu/.orca-hackathon/<name>.env /home/ubuntu/bin/orca-merge-agent
+ORCA_HACKATHON_CONFIG=~/.orca-hackathon/<name>.env ~/bin/orca-merge-agent
 ```
 For continuous multi-repo operation, add a systemd instance per config.
 
@@ -165,7 +184,7 @@ For continuous multi-repo operation, add a systemd instance per config.
   teammate one (revocable per client). Treat them like passwords.
 - **systemd:** `orca-serve.service`, `orca-merge-agent.service` + `.timer`.
 - **Upgrades:** `orca-ide` auto-updates; agents update via npm/their installers.
-- **Backups:** back up `/home/ubuntu/.config/orca/profiles/` (settings/state) and the repo.
+- **Backups:** back up `~/.config/orca/profiles/` (settings/state) and the repo.
 
 ## 11. Troubleshooting
 See `docs/09-troubleshooting.md`. Common: non-interactive PATH (`~/.local/bin`), `opencode run`
@@ -173,7 +192,7 @@ needs `--standalone`, stale pairing links (restart rotates them), merge agent lo
 `~/.orca-merge/log`.
 
 ## 12. Reference
-- **Config:** `/home/ubuntu/.orca-hackathon/config` → `REPO`, `BASE_BRANCH`, `REPO_DIR`.
+- **Config:** `~/.orca-hackathon/config` → `REPO`, `BASE_BRANCH`, `REPO_DIR`.
 - **Labels:** `merge-ready`, `merge-conflict`, `needs-author-input`.
 - **Resolver exit codes:** `0` resolved/no-conflict, `10` escalated, `2` error.
 - **Scripts:** `setup-new-repo.sh`, `github/configure-repo.sh`, `github/setup-board.sh`,

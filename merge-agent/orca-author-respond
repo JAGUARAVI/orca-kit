@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # An author agent answers a merge-agent question about a PR it wrote.
+# Usage: orca-author-respond <Author> <PR>
 set -uo pipefail
-AUTHOR=$1; PR=$2
-MERGE_DIR=${MERGE_DIR:-/home/ubuntu/.orca-merge}
-MODEL=${MODEL:-fireworks-azure/Avi-DeepSeek-V4.1-Flash}
-AGENT=${AGENT:-/home/ubuntu/.local/bin/Avi-opencode2}
+. "$(dirname "$0")/../lib/orca-kit.sh"
+
+AUTHOR="${1:?usage: orca-author-respond <Author> <pr>}"; PR="${2:?usage: orca-author-respond <Author> <pr>}"
+: "${MERGE_DIR:=$HOME/.orca-merge}"
+: "${MODEL:=fireworks-azure/Avi-DeepSeek-V4.1-Flash}"
+AGENT="${AGENT:-$AGENT_BIN}"
 Q="$MERGE_DIR/questions/$PR.json"
 [ -f "$Q" ] || { echo "no question for #$PR"; exit 1; }
 question=$(jq -r .question "$Q"); files=$(jq -r '.files|join(", ")' "$Q")

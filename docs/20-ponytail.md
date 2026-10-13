@@ -37,7 +37,7 @@ opencode2 plugin list | grep -i ponytail
 grep -c ponytail ~/.cursor/hooks.json
 ls ~/.agents/skills | grep ponytail
 # functional (OpenCode):
-cd /srv/orca-demo && Avi-opencode2 run --standalone --model fireworks-azure/Avi-DeepSeek-V4.1-Flash \
+cd <repo-dir> && <Owner>-opencode2 run --standalone --model "$MODEL" \
   "Add a date picker component. Reply with the approach in one line."
 # -> "Add <input type=\"date\"> … no dependency."
 ```

@@ -1,0 +1,12 @@
+# Orca self-hosted runner health check. Template: %i = the user that owns the runner.
+# The script lives in the kit; set KIT_DIR via a drop-in if it is not ~/orca-kit.
+[Unit]
+Description=Orca self-hosted runner health check (restart, free CI ports, self-heal tools)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=%i
+Environment=HOME=/home/%i
+Environment=KIT_DIR=/home/%i/orca-kit
+ExecStart=/bin/bash -c 'exec ${KIT_DIR:-$HOME/orca-kit}/systemd/orca-runner-health.sh'

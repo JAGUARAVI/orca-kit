@@ -22,11 +22,14 @@ New here? Read in order:
 18. `18-antigravity-agent.md` — Google Antigravity CLI (`agy`) as an agent
 19. `19-task-breakdown-and-issues.md` — plan → task graph → GitHub issues → board
 20. `20-ponytail.md` — Ponytail ruleset installed in every agent (write the least code that works)
+21. `21-self-hosted-runner.md` — run CI on the VM (self-hosted Actions runner, no GitHub minutes)
+22. `22-efficiency-automations.md` — dispatcher, merge-agent guards, runner health, reaper, tracking loop
+23. `23-idea-to-task-dag.md` — idea → technical plan → parallel task DAG → issues → board
+24. `24-agent-skills.md` — agent skills shipped with the kit (and how to add more)
 
-Templates (copy into your repo): `templates/SPEC.md`, `templates/ADR.md`,
-`templates/AGENTS.md`, `templates/TASK-BRIEF.md`.
+Templates (copy into your repo): `templates/PRODUCT-PLAN.md`, `templates/SPEC.md`,
+`templates/ADR.md`, `templates/AGENTS.md`, `templates/TASKS-README.md`, `templates/TASK-BRIEF.md`.
 
 Human-facing explainers live in `../orca-welcome/`:
 - `WELCOME.md` (detailed), `PLAYBOOK.md` (day-to-day), `SUMMARY.md` (short),
   `INVITE.md` + `invites/<name>.md`.
-21. `21-self-hosted-runner.md` — run CI on the VM (self-hosted Actions runner, no GitHub minutes)

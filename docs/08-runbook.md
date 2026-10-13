@@ -11,7 +11,7 @@ gh pr edit <n> --add-label merge-ready
 
 ## Watch the merge agent
 ```bash
-tail -f /home/ubuntu/.orca-merge/log/merge-agent.log
+tail -f ~/.orca-merge/log/merge-agent.log
 systemctl list-timers orca-merge-agent.timer
 systemctl start orca-merge-agent.service     # run now
 gh pr list --label merge-ready --state open
@@ -25,7 +25,7 @@ orca-author-respond <author-label> <pr>
 
 ## Raise approvals to 1 (for the team)
 ```bash
-gh api -X PUT repos/<owner>/<repo>/rulesets/24813857 --input - <<'J'
+gh api -X PUT repos/<owner/repo>/rulesets/<ruleset-id> --input - <<'J'
 {"name":"main-protection","target":"branch","enforcement":"active",
  "conditions":{"ref_name":{"include":["refs/heads/main"],"exclude":[]}},
  "rules":[{"type":"pull_request","parameters":{"required_approving_review_count":1,"allowed_merge_methods":["squash","merge","rebase"]}},

@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# orca-reap — remove Orca worktrees + branches whose PR has merged (or that are abandoned),
+# so `orca worktree ps` stays readable and disk stays free. The megathon run accumulated 80
+# worktrees for one repo, most with `live:0`.
+#
+# Usage:
+#   orca-reap [--repo <path>] [--gh <Name>-gh] [--age-days N] [--dry-run] [--keep <branch>...]
+#
+# Rules (conservative — never deletes unmerged work):
+#   * branch has a MERGED PR            -> remove worktree + delete local branch
+#   * branch has NO PR and is older than --age-days (default 14) and has no uncommitted changes
+#                                       -> remove worktree + delete local branch
+#   * everything else                   -> leave alone
+set -uo pipefail
+. "$(dirname "$0")/../lib/orca-kit.sh"
+REPO=""; GH="${GH:-gh}"; AGE=14; DRY=0; KEEP=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo) REPO="$2"; shift 2 ;;
+    --gh)   GH="$2"; shift 2 ;;
+    --age-days) AGE="$2"; shift 2 ;;
+    --dry-run) DRY=1; shift ;;
+    --keep) KEEP+=("$2"); shift 2 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    *) shift ;;
+  esac
+done
+[[ -n "$REPO" ]] || REPO=$(pwd)
+ROOT=$(git -C "$REPO" rev-parse --show-toplevel 2>/dev/null || echo "$REPO")
+SLUG=$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#.*github.com[:/]([^/]+/[^/.]+).*#\1#')
+echo "reap $SLUG  root=$ROOT  age=${AGE}d  dry=$DRY"
+
+# gather merged branches
+merged_branches=$("$GH" pr list -R "$SLUG" --state merged --limit 500 --json headRefName --jq '.[].headRefName' 2>/dev/null | sort -u)
+now=$(date +%s)
+
+git -C "$ROOT" worktree list --porcelain | awk '/^worktree /{w=$2} /^branch /{print w"\t"$2}' | while IFS=$'\t' read -r wt ref; do
+  br=${ref#refs/heads/}
+  for k in "${KEEP[@]:-}"; do [[ "$br" = "$k" ]] && continue 2; done
+  [[ "$br" = "main" || "$br" = "master" ]] && continue
+
+  reason=""
+  if grep -qxF "$br" <<<"$merged_branches"; then reason="PR merged"; fi
+  if [[ -z "$reason" ]]; then
+    # abandoned: no PR, no uncommitted changes, old last commit
+    dirty=$(git -C "$wt" status --porcelain 2>/dev/null | head -1 || true)
+    ct=$(git -C "$ROOT" log -1 --format=%ct "$br" 2>/dev/null || echo 0)
+    age_days=$(( (now - ct) / 86400 ))
+    if [[ -z "$dirty" && "$age_days" -ge "$AGE" ]]; then reason="abandoned (${age_days}d, clean)"; fi
+  fi
+  [[ -z "$reason" ]] && continue
+
+  if [[ $DRY = 1 ]]; then
+    echo "  DRY remove $br  ($reason)"; continue
+  fi
+  ( cd "$ROOT" && git worktree remove --force "$wt" 2>/dev/null ) \
+    && echo "  removed worktree $br ($reason)" || echo "  worktree rm failed: $br"
+  # only delete the local branch if its PR merged (never drop unmerged commits)
+  if [[ "$reason" = "PR merged" ]]; then
+    git -C "$ROOT" branch -D "$br" >/dev/null 2>&1 && echo "    deleted branch $br"
+  fi
+done
+git -C "$ROOT" worktree prune 2>/dev/null || true
+echo "done."

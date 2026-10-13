@@ -8,7 +8,7 @@ Access is Tailscale-only; the endpoint is not reachable from the public internet
 Each paired client gets a revocable grant (host: Settings → Shared Server Access).
 
 ## Service
-- `orca-serve.service` runs `xvfb-run orca-ide serve --port 6768 --pairing-address <tailscale-ip>`.
+- `orca-serve.service` runs `xvfb-run orca-ide serve --port 6768 --pairing-address 100.105.35.26`.
 - Restart regenerates the pairing offer: `sudo systemctl restart orca-serve`.
 - Logs: `sudo journalctl -u orca-serve -f`.
 

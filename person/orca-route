@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Route an Orca-launched agent to the worktree owner's per-person env, then exec it.
+# orca-route — route an Orca-launched agent to the worktree owner's per-person env, then exec it.
+# Owner is taken from ./.orca-owner, the repo root's .orca-owner, $ORCA_PERSON, else the kit owner.
 set -euo pipefail
-export PATH="/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:$PATH"
-agent="$1"; shift || true
+. "$(dirname "$0")/../lib/orca-kit.sh"
+
+agent="${1:?usage: orca-route <agent> [args...]}"; shift || true
+
 owner=""
-if [ -f ./.orca-owner ]; then owner=$(cat ./.orca-owner 2>/dev/null || true); fi
+[ -f ./.orca-owner ] && owner=$(cat ./.orca-owner 2>/dev/null || true)
 if [ -z "$owner" ]; then
   root=$(git rev-parse --show-toplevel 2>/dev/null || true)
   [ -n "$root" ] && [ -f "$root/.orca-owner" ] && owner=$(cat "$root/.orca-owner" 2>/dev/null || true)
 fi
-[ -z "$owner" ] && owner="${ORCA_PERSON:-Avi}"
-env_file="/home/ubuntu/.orca-keys/${owner}.env"
+[ -z "$owner" ] && owner="${ORCA_PERSON:-${ORCA_OWNER:-${KIT_OWNER:-$(id -un)}}}"
+
+env_file="${KEYS_DIR:-$HOME/.orca-keys}/${owner}.env"
 if [ -f "$env_file" ]; then set -a; . "$env_file"; set +a; fi
 exec "$agent" "$@"

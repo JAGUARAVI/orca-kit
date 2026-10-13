@@ -1,14 +1,21 @@
 # 19 — Turning a plan into tasks, issues and a board
 
-A repeatable pipeline that takes a product/technical plan and produces a **parallel-safe task
-graph**, **one GitHub issue per task** (with workflow labels and dependency links), and the
-matching **Orca runs**.
+A repeatable pipeline that takes a **product plan and its technical implementation plan** and
+produces a **parallel-safe task graph**, **one GitHub issue per task** (with workflow labels and
+dependency links), and the matching **Orca runs**.
+
+> This doc covers the **plan → tasks → issues** half. For the whole chain — idea → product plan →
+> technical plan → tasks — see **`23-idea-to-task-dag.md`** (and the `orca-plan` tool). The product
+> plan is what defines scope and phase gates; the technical plan is what defines components and
+> interfaces. Both feed the decomposition below.
 
 ```
-plan.md  ──►  docs/tasks/README.md (index: IDs, deps, ownership, runs)
-         ──►  docs/tasks/<PHASE>/<ID>-<slug>.md   (one brief per task, templates/TASK-BRIEF.md)
-         ──►  github/create-task-issues.py        (one issue per task + labels + dep links)
-         ──►  board cards / Orca worktrees         (one card = one worktree = one agent = one PR)
+idea.md                    ──►  orca-plan product   ──►  docs/product-plan.md
+product-plan.md            ──►  orca-plan plan      ──►  docs/technical-implementation-plan.md
+tech plan                  ──►  docs/tasks/README.md (index: IDs, deps, ownership, runs)
+                           ──►  docs/tasks/<PHASE>/<ID>-<slug>.md   (one brief per task, templates/TASK-BRIEF.md)
+                           ──►  github/create-task-issues.py        (one issue per task + labels + dep links)
+                           ──►  board cards / Orca worktrees         (one card = one worktree = one agent = one PR)
 ```
 
 ## 1. Decompose the plan

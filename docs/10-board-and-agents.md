@@ -4,18 +4,19 @@ The board is the shared control surface for **features and decisions** (the Orca
 shared execution; the board gives shared intent).
 
 ## This project
-- **Megathon GS Vanguard — Task Board** — https://github.com/users/<owner>/projects/<n>
-- Repo: `<owner>/<repo>`
+Example board (yours will differ):
+- **Task Board** — https://github.com/users/<owner>/projects/<n>
+- Repo: `<owner/repo>`
 - Fields: **Status** (Todo / In Progress / Done), **Owner**, **Worktree**.
 - Cards: the P0 slice, spec/interfaces work, and the open decisions.
 
 ## Other boards
-- **Orca Demo — Feature Board** — https://github.com/users/<owner>/projects/<n> (demo repo).
+- **Feature Board** — https://github.com/users/<owner>/projects/<n> (demo repo).
 
-## Why it lives under `<owner>`, not the org
+## Why it lives under the user, not the org
 - Org project creation is disabled for this account (`viewerCanCreateProjects: false`).
 - A **user** project cannot link an **org-owned** repo (GitHub requires the same owner), so the
-  Repository column stays empty. If IIIT-ECell enables org projects, move/relink it.
+  Repository column stays empty. If <org> enables org projects, move/relink it.
 
 ## Using it
 1. Card per feature/decision; set **Owner**.
@@ -26,7 +27,7 @@ shared execution; the board gives shared intent).
 
 ## Creating a board for another repo
 ```bash
-/home/ubuntu/orca-kit/github/setup-board.sh <owner> "<Title>" [<owner/repo>]
+~/orca-kit/github/setup-board.sh <owner> "<Title>" [<owner/repo>]
 ```
 Creates the project, adds the **Owner** field; add **Worktree** with
 `gh project field-create <n> --owner <owner> --name Worktree --data-type TEXT`.

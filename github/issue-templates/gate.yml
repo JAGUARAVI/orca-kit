@@ -1,0 +1,35 @@
+---
+name: Human gate
+description: A decision or sign-off a named person must make before downstream work proceeds
+title: "[GATE] "
+labels: ["gate", "blocked"]
+body:
+  - type: input
+    id: signer
+    attributes:
+      label: Signer
+      description: The person who must sign off (name / GitHub handle).
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision required
+      description: Exactly what must be decided or reviewed.
+    validations:
+      required: true
+  - type: textarea
+    id: blocks
+    attributes:
+      label: Blocks
+      description: Cards/tasks that cannot start until this gate is signed (kept `blocked`).
+      placeholder: P0-19, P0-22
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What the signer reviews
+      description: Links to the PR / artefact / file the signer inspects.
+    validations:
+      required: false

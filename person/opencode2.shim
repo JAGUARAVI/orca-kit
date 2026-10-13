@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # opencode2 — default OpenCode v2 launcher.
-# Behaves like `Avi-opencode2 --standalone`: loads Avi's per-person env (API key +
-# OPENCODE_CONFIG) and forces a private server (--standalone) so the TUI does not
+# Behaves like `<Owner>-opencode2 --standalone`: loads the DEFAULT owner's per-person env
+# (API key + OPENCODE_CONFIG) and forces a private server (--standalone) so the TUI does not
 # connect to the long-running keyless background service.
 #
 # Flag placement matters:
@@ -9,13 +9,32 @@
 #   * bare TUI       : --standalone goes directly               (opencode --standalone)
 #   * management     : plugin/auth/mcp/models/... take no --standalone (left untouched)
 # If the caller already passed --standalone/--server/--attach, nothing is injected.
+#
+# Install to a dir on PATH (default $OPENCODE_BIN_DIR/opencode2). The real binary must be
+# reachable as $REAL_BIN (default: an `opencode` beside this shim, else on PATH).
 set -euo pipefail
+ORCA_KIT_ENV="${ORCA_KIT_ENV:-}"
+for f in "${ORCA_KIT_ENV:-}" "$HOME/.orca-kit.env" "/etc/orca-kit.env" \
+         "$(dirname "$0")/../orca-kit.env.example" "$(dirname "$0")/../lib/orca-kit.sh"; do
+  [ -n "$f" ] && [ -f "$f" ] && { . "$f" 2>/dev/null || true; break; }
+done
+. "$(dirname "$0")/../lib/orca-kit.sh" 2>/dev/null || true
 
-REAL="/home/ubuntu/.opencode/bin/opencode"
-ENV_FILE="/home/ubuntu/.orca-keys/Avi.env"
-CFG_FILE="/home/ubuntu/.orca-keys/Avi.opencode.json"
+# Default owner whose keys this shim uses (override with ORCA_OWNER / .orca-owner in cwd).
+OWNER="${ORCA_OWNER:-${KIT_OWNER:-$(id -un)}}"
+[ -f ./.orca-owner ] && OWNER="$(cat ./.orca-owner 2>/dev/null || echo "$OWNER")"
 
-# 1) Avi's per-person identity (key, config dir, git identity)
+KEYS="${KEYS_DIR:-$HOME/.orca-keys}"
+ENV_FILE="$KEYS/$OWNER.env"
+CFG_FILE="$KEYS/$OWNER.opencode.json"
+
+# real binary: explicit, beside the shim, else PATH
+REAL="${REAL_BIN:-}"
+[ -z "$REAL" ] && { [ -x "$(dirname "$0")/opencode" ] && REAL="$(dirname "$0")/opencode"; }
+[ -z "$REAL" ] && REAL="$(command -v opencode 2>/dev/null || true)"
+[ -n "$REAL" ] || { echo "opencode2: cannot find the real 'opencode' binary (set REAL_BIN)" >&2; exit 127; }
+
+# 1) per-person identity (key, config dir, git identity)
 if [ -f "$ENV_FILE" ]; then set -a; . "$ENV_FILE"; set +a; fi
 [ -f "$CFG_FILE" ] && export OPENCODE_CONFIG="$CFG_FILE"
 
@@ -34,7 +53,6 @@ fi
 
 case "$sub" in
   run|mini)
-    # subcommand first, then --standalone, then the rest
     shift
     exec "$REAL" "$sub" --standalone "$@"
     ;;
@@ -42,7 +60,6 @@ case "$sub" in
     exec "$REAL" "$@"
     ;;
   *)
-    # bare TUI (or a leading flag like -c/--continue, -s/--session, --prompt)
     exec "$REAL" --standalone "$@"
     ;;
 esac

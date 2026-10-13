@@ -2,16 +2,16 @@
 
 Each person has:
 ```
-/home/ubuntu/.orca-keys/<Name>.env          # 600: API keys + CLAUDE_CONFIG_DIR
-/home/ubuntu/.orca-people/<Name>/claude/    # 700: that person's isolated Claude Code config
-/home/ubuntu/.local/bin/<Name>-{opencode2,claude,codex,cursor}
+~/.orca-keys/<Name>.env          # 600: API keys + CLAUDE_CONFIG_DIR
+~/.orca-people/<Name>/claude/    # 700: that person's isolated Claude Code config
+~/.local/bin/<Name>-{opencode2,claude,codex,cursor}
 ```
 
 Add a person:
 ```bash
 orca-keys-add <Name>
-mkdir -p /home/ubuntu/.orca-people/<Name>/claude
-echo 'CLAUDE_CONFIG_DIR=/home/ubuntu/.orca-people/<Name>/claude' >> /home/ubuntu/.orca-keys/<Name>.env
+mkdir -p ~/.orca-people/<Name>/claude
+echo 'CLAUDE_CONFIG_DIR=~/.orca-people/<Name>/claude' >> ~/.orca-keys/<Name>.env
 # then log in:  <Name> -claude   (builds that person's own config)
 ```
 

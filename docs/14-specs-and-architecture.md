@@ -3,12 +3,31 @@
 An agent with no constraints will invent scope. **The spec is the contract; the architecture is
 the fence.** Write both before parallel work starts.
 
+## 14.0 How the documents relate (read this first)
+The spec does not appear from nowhere — it sits in a chain of artefacts, each at a different
+altitude. Write them in order; each constrains the next (full detail in `23-idea-to-task-dag.md`):
+```
+idea.md                              raw notes
+  └─ product plan                    who / what / why / scope by phase / gates   (product language)
+       └─ technical implementation plan   components, interfaces, stack, workstreams (engineering)
+            └─ SPEC.md                the exact behaviour the code must meet (the contract)
+                 ├─ docs/adr/*.md     why each consequential choice was made
+                 └─ docs/tasks/*      who does what, in what order (the DAG)
+```
+- The **product plan** fixes *scope and non-goals*; the **spec** fixes *behaviour*; the **technical
+  plan** fixes *structure*. When they disagree, the product plan wins on *what*, the spec wins on
+  *how it must behave*.
+- Agents are held to the **spec** (verifiable) and the **owned paths** (the fence), not to prose.
+
 ## 14.1 Repository documentation layout
 Keep these in the repo so every agent and human reads the same truth:
 ```
-SPEC.md                 # what we are building (product contract)
+docs/PRODUCT-PLAN.md    # product: users, outcomes, scope by phase, gates (doc 23)
+docs/technical-implementation-plan.md  # engineering: components, interfaces, stack (doc 23)
+SPEC.md                 # what we are building (behavioural contract)
 docs/architecture.md    # how the system is shaped (diagrams + invariants)
 docs/adr/0001-*.md      # Architecture Decision Records (one per real decision)
+docs/tasks/             # task index + one brief per task (the DAG, doc 19)
 AGENTS.md               # rules for agents working in this repo (doc 16)
 CONTRIBUTING.md         # human process: branches, PRs, review, board
 docs/features/<name>.md # per-feature spec when a feature is big
@@ -82,7 +101,9 @@ status updated; PR is small and self-describing; no do-not-touch paths modified.
 See also: `19-task-breakdown-and-issues.md` (turn a plan into tasks, issues and a board).
 
 ## 14.8 Templates
-- `templates/SPEC.md` — product spec.
+- `templates/PRODUCT-PLAN.md` — product plan (users, scope by phase, gates).
+- `templates/SPEC.md` — behavioural spec (the contract).
 - `templates/ADR.md` — decision record.
 - `templates/AGENTS.md` — agent rules for the repo.
+- `templates/TASKS-README.md` — the task index (DAG table + parallel runs).
 - `templates/TASK-BRIEF.md` — the brief you paste into `worktree create --prompt`.

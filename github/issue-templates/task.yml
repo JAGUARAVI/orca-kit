@@ -1,0 +1,68 @@
+---
+name: Task
+description: One implementation task (one issue = one worktree = one agent = one PR)
+title: "[P0-00] "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep one task per issue. Match the brief in `docs/tasks/`. The `[ID]` tag in the title is
+        what the reconciler matches on — always fill it.
+  - type: input
+    id: card
+    attributes:
+      label: Card ID
+      description: The `[ID]` tag (e.g. P0-04). Also used by the reconciler.
+      placeholder: P0-04
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target
+      description: What outcome this task delivers, in observable terms.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Change
+      description: The concrete change (files/areas), no opportunistic refactors.
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Ownership (paths this task may edit)
+      description: Disjoint from any task running in the same wave.
+      placeholder: src/core/contracts/**
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Observable acceptance
+      description: How a reviewer proves it works (commands, screens, checks).
+    validations:
+      required: true
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] acceptance criteria pass
+        - [ ] tests added/updated
+        - [ ] docs / ADR updated
+        - [ ] linters + CI green
+        - [ ] scope matches brief; no frozen paths touched
+    validations:
+      required: true
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      description: Comma-separated card IDs that must land first (kept as `blocked` until they close).
+      placeholder: P0-01, P0-04
+    validations:
+      required: false

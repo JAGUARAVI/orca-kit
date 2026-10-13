@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
-exec /home/ubuntu/bin/orca-route cursor-agent "$@"
+# Route the cursor-agent agent to the worktree owner's per-person env (see orca-route).
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+route="$here/orca-route"
+[ -x "$route" ] || route="$(command -v orca-route)"
+exec "$route" cursor-agent "$@"

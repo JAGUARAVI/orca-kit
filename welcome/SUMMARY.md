@@ -12,5 +12,5 @@ conflict is semantic. A shared **GitHub Project board** tracks features and deci
 3. Push a branch → open a PR → label it `merge-ready`.
 4. Track your card on the board.
 
-**Links:** repo `<owner>/<repo>` · board https://github.com/users/<owner>/projects/1
+**Links:** repo `JAGUARAVI/orca-demo` · board https://github.com/users/JAGUARAVI/projects/1
 · detailed guide `~/orca-welcome/WELCOME.md` · docs `~/orca-docs/00-index.md`.

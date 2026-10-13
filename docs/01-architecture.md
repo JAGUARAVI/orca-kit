@@ -1,7 +1,7 @@
 # 01 — Architecture
 
 ```
-Lightsail host (<tailscale-ip>, 8 vCPU / 30 GB)
+Lightsail host (100.105.35.26, 8 vCPU / 30 GB)
   orca-serve.service       ── Orca runtime (worktrees, terminals, orchestration)
   worktrees/               ── one per feature (git worktree, isolated)
   orca-merge-agent.timer   ── automated merge agent (every 60s)
@@ -10,7 +10,7 @@ Lightsail host (<tailscale-ip>, 8 vCPU / 30 GB)
         │ Tailscale (private)
   teammates: Orca desktop + browser client + mobile
 
-GitHub: <owner>/<repo>
+GitHub: <owner/repo> (example: JAGUARAVI/orca-demo)
   ci.yml  ── required status check
   main: protected (strict "checks"), auto-merge enabled
 ```

@@ -1,0 +1,62 @@
+# Keep task-issue labels in step with PR activity.
+# Copy to .github/workflows/task-sync.yml in the repo.
+# Requires: Settings -> Actions -> General -> Workflow permissions = "Read and write".
+#
+# What it does (idempotent, cheap):
+#   * PR opened / ready_for_review with a `[ID]` tag or `feat/<id>-...` branch
+#       -> ensure the task issue is labeled `review` (and not `ready`/`blocked`/`in-progress`).
+#   * PR merged (handled by task-reconcile.yml for close+unblock) -> strip `review`.
+#   * Draft PRs are ignored (a draft is not review-ready; this is what caused the merge-agent loop).
+name: task-sync
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, converted_to_draft, reopened, closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  sync:
+    runs-on: [self-hosted, linux, x64, orca-vm]
+    steps:
+      - name: Sync task label from PR state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          ACTION: ${{ github.event.action }}
+          TITLE: ${{ github.event.pull_request.title }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          # extract the task ID from the PR title `[ID]` or the branch name
+          ID=$(printf '%s' "$TITLE" | grep -oE '[A-Za-z0-9]+-[0-9]+' | head -1 || true)
+          if [ -z "$ID" ]; then
+            ID=$(printf '%s' "$HEAD" | grep -oE '[A-Za-z0-9]+-[0-9]+' | head -1 || true)
+          fi
+          if [ -z "$ID" ]; then echo "no task ID in title/branch; nothing to sync"; exit 0; fi
+
+          # find the issue whose title starts with [ID]
+          N=$(gh issue list -R "$REPO" --state all --limit 200 \
+                --json number,title --jq ".[]|select(.title|startswith(\"[$ID]\"))|.number" | head -1)
+          [ -n "${N:-}" ] || { echo "no issue for $ID"; exit 0; }
+
+          if [ "$MERGED" = "true" ]; then
+            gh issue edit "$N" -R "$REPO" --remove-label review >/dev/null 2>&1 || true
+            echo "removed review from #$N ($ID)"
+            exit 0
+          fi
+          if [ "$DRAFT" = "true" ]; then
+            echo "draft PR; leaving #$N unchanged"
+            exit 0
+          fi
+          # non-draft, open PR -> review
+          gh issue edit "$N" -R "$REPO" \
+            --add-label review \
+            --remove-label ready --remove-label in-progress --remove-label blocked >/dev/null 2>&1 || true
+          echo "#$N ($ID) -> review"

@@ -1,64 +1,62 @@
 #!/usr/bin/env bash
+# orca-keys-add — create a person's isolated profile: env file + model config + app wrappers.
+# Usage: orca-keys-add <name>
 set -euo pipefail
+. "$(dirname "$0")/../lib/orca-kit.sh"
+
 name="${1:?usage: orca-keys-add <name>}"
-K=/home/ubuntu/.orca-keys
-P=/home/ubuntu/.orca-people/$name
+K="${KEYS_DIR:-$HOME/.orca-keys}"
+P="${PEOPLE_DIR:-$HOME/.orca-people}/$name"
+LB="${LOCAL_BIN:-$HOME/.local/bin}"
 [ -f "$K/$name.env" ] && { echo "exists: $K/$name.env"; exit 1; }
-umask 077; mkdir -p "$K" "$P/gh" "$P/claude" "$P/antigravity/.gemini/antigravity-cli"
+umask 077; mkdir -p "$K" "$P/gh" "$P/claude" "$LB"
 chmod 700 "$K" "$P" "$P/gh" "$P/claude"
+
 cat > "$K/$name.env" <<ENV
 # $name - per-person API keys + identity (chmod 600)
 OPENCODE_FIREWORKS_API_KEY=
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 CURSOR_API_KEY=
-# Google Antigravity CLI (agy): isolated HOME holds the Google login
-ANTIGRAVITY_HOME=
 CLAUDE_CONFIG_DIR=$P/claude
 # GitHub identity — populate with: orca-gh-add $name [token]
 GH_CONFIG_DIR=$P/gh
 GH_USER=
 ENV
 chmod 600 "$K/$name.env"
+
+# per-person model config (provider/model id taken from the kit config)
+model_id="${MODEL##*/}"
 cat > "$K/$name.opencode.json" <<JSON
 {
   "provider": { "fireworks-azure": { "models": {
-    "$name-DeepSeek-V4.1-Flash": {
-      "id": "DeepSeek-V4.1-Flash", "name": "$name-DeepSeek-V4.1-Flash",
+    "$name-$model_id": {
+      "id": "$model_id", "name": "$name-$model_id",
       "limit": { "context": 1000000, "output": 16384 },
       "cost": { "input": 0.3, "output": 1.2, "cache": { "read": 0.006, "write": 0 } }
     }
   }}}
 }
 JSON
-cat > "/home/ubuntu/.local/bin/${name}-antigravity" <<WRAPAGY
-#!/usr/bin/env bash
-set -euo pipefail
-export PATH="/home/ubuntu/.local/bin:/home/ubuntu/.opencode/bin:$PATH"
-set -a; . "$K/$name.env"; set +a
-export HOME="$P/antigravity"
-mkdir -p "$HOME/.gemini/antigravity-cli"
-exec /home/ubuntu/.local/bin/agy "$@"
-WRAPAGY
-chmod +x "/home/ubuntu/.local/bin/${name}-antigravity"
 
 for pair in "opencode2:opencode2" "claude:claude" "codex:codex" "cursor:cursor-agent"; do
   w="${pair%%:*}"; b="${pair##*:}"
-  cat > "/home/ubuntu/.local/bin/${name}-${w}" <<WRAP
+  cat > "$LB/${name}-${w}" <<WRAP
 #!/usr/bin/env bash
 set -euo pipefail
 set -a; . "$K/$name.env"; set +a
 [ -f "$K/$name.opencode.json" ] && export OPENCODE_CONFIG="$K/$name.opencode.json"
 exec $b "\$@"
 WRAP
-  chmod +x "/home/ubuntu/.local/bin/${name}-${w}"
+  chmod +x "$LB/${name}-${w}"
 done
-cat > "/home/ubuntu/.local/bin/${name}-gh" <<WRAP
+cat > "$LB/${name}-gh" <<WRAP
 #!/usr/bin/env bash
 set -euo pipefail
 export GH_CONFIG_DIR=$P/gh
 exec gh "\$@"
 WRAP
-chmod +x "/home/ubuntu/.local/bin/${name}-gh"
-echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor,gh,antigravity}."
+chmod +x "$LB/${name}-gh"
+
+echo "created $K/$name.env + wrappers ${name}-{opencode2,claude,codex,cursor,gh} in $LB"
 echo "next: orca-gh-add $name [token]"

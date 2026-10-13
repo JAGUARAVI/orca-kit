@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# task — the day-to-day tracker for task issues. One interface for status, dispatch, and board sync.
+#
+#   task status  [--repo <owner/repo>] [--gh <Name>-gh]   # ready / in-progress / review / blocked counts + lists
+#   task next    [--phase P1] [--n 3]                     # the next N unblocked tasks to dispatch (ready, oldest first)
+#   task start   <ID> [--agent <a>] [--gh <Name>-gh]      # dispatch: worktree+agent+issue, label in-progress
+#   task done    <ID>                                     # close the issue + de-label (after merge)
+#   task sync    [--repo ...]                             # reconcile labels from issue/PR state
+#
+# Uses the person's `gh` wrapper. Safe to re-run.
+set -uo pipefail
+. "$(dirname "$0")/../lib/orca-kit.sh"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+KIT="${KIT_DIR:-$(cd "$HERE/.." && pwd)}"
+
+cmd="${1:-}"; shift || true
+case "$cmd" in ""|-h|--help) sed -n '2,16p' "$0"; exit 0 ;; esac
+
+REPO=""; GH="gh"; PHASE=""; N=3; AGENT=""; ID=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo) REPO="$2"; shift 2 ;;
+    --gh)   GH="$2"; shift 2 ;;
+    --phase) PHASE="$2"; shift 2 ;;
+    --n)    N="$2"; shift 2 ;;
+    --agent) AGENT="$2"; shift 2 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    *) [[ -z "$ID" ]] && ID="$1"; shift ;;
+  esac
+done
+
+slug() { git remote get-url origin 2>/dev/null | sed -E 's#.*github.com[:/]([^/]+/[^/.]+).*#\1#'; }
+[[ -n "$REPO" ]] || REPO=$(slug)
+R=(); [[ -n "$REPO" ]] && R=(-R "$REPO") || { echo "no repo (pass --repo)"; exit 2; }
+
+case "$cmd" in
+  status)
+    issues=$("$GH" issue list "${R[@]}" --state open --limit 500 \
+      --json number,title,labels --jq '.')
+    echo "== task status =="
+    for lbl in ready in-progress review blocked; do
+      n=$(echo "$issues" | jq --arg l "$lbl" '[.[]|select(.labels|map(.name)|index($l))]|length')
+      echo "  $lbl: $n"
+    done
+    echo
+    for lbl in ready in-progress review blocked; do
+      echo "-- $lbl --"
+      echo "$issues" | jq -r --arg l "$lbl" \
+        '.[]|select(.labels|map(.name)|index($l))|"  #\(.number) \(.title)"' | head -20
+    done
+    ;;
+  next)
+    # the next N unblocked tasks, oldest first, optionally filtered by phase label
+    "$GH" issue list "${R[@]}" --state open --label ready --limit 200 \
+      --json number,title,createdAt,labels \
+      --jq --arg ph "$PHASE" --argjson n "$N" '
+        [ .[]
+          | select($ph == "" or (.labels|map(.name)|index($ph)))
+        ]
+        | sort_by(.createdAt)
+        | .[0:$n][]
+        | "#\(.number) \(.title)"
+      '
+    ;;
+  start)
+    [[ -n "$ID" ]] || { echo "usage: task start <ID> [--agent ...]"; exit 2; }
+    ARGS=("$ID"); [[ -n "$AGENT" ]] && ARGS+=(--agent "$AGENT"); [[ -n "$GH" ]] && ARGS+=(--gh "$GH"); [[ -n "$REPO" ]] && ARGS+=(--repo "$REPO")
+    "$HERE/../bin/orca-dispatch" "${ARGS[@]}"
+    n=$("$GH" issue list "${R[@]}" --state open --search "[$ID] in:title" --json number,title \
+        --jq ".[]|select(.title|startswith(\"[$ID]\"))|.number" | head -1)
+    [[ -n "$n" ]] && "$GH" issue edit "$n" "${R[@]}" --add-label in-progress --remove-label ready >/dev/null 2>&1 && echo "issue #$n -> in-progress"
+    ;;
+  done)
+    [[ -n "$ID" ]] || { echo "usage: task done <ID>"; exit 2; }
+    n=$("$GH" issue list "${R[@]}" --state all --search "[$ID] in:title" --json number,title \
+        --jq ".[]|select(.title|startswith(\"[$ID]\"))|.number" | head -1)
+    [[ -n "$n" ]] || { echo "no issue for $ID"; exit 1; }
+    "$GH" issue close "$n" "${R[@]}" --reason completed >/dev/null 2>&1
+    "$GH" issue edit "$n" "${R[@]}" --remove-label in-progress --remove-label review \
+      --remove-label ready --remove-label blocked >/dev/null 2>&1 || true
+    echo "issue #$n closed ($ID)"
+    ;;
+  sync)
+    root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    [[ -f "$root/.github/scripts/reconcile-task-issues.py" ]] || \
+      install -D "$KIT/github/reconcile-task-issues.py" "$root/.github/scripts/reconcile-task-issues.py"
+    python3 "$root/.github/scripts/reconcile-task-issues.py" --repo "$REPO" --gh "$GH"
+    ;;
+  *)
+    sed -n '2,16p' "$0"; exit 1 ;;
+esac

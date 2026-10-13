@@ -8,7 +8,8 @@ Installed (host):
 | OpenCode v2 | 2.0.26 (`opencode`, `opencode2`) | `Avi-opencode2` |
 | Cursor CLI | 2026.10.01 | `Avi-cursor` |
 
-Wrappers live in `/home/ubuntu/.local/bin/` and source the person's env file.
+Wrappers are named `<Owner>-<agent>` and live in `$LOCAL_BIN` (default `~/.local/bin`); each
+sources that person's env file. Below, `Avi` is just the configured default owner (`KIT_OWNER`).
 
 Orca's own agent picker launches the raw CLIs; Orca-launched agents inherit the
 service environment (Avi's keys via `EnvironmentFile`). To give each person a

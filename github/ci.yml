@@ -1,12 +1,54 @@
 name: ci
+
 on:
   pull_request:
     branches: [main]
   merge_group:
+
+# Cancel superseded runs on the same PR. Without this, rapid pushes to a branch leave dozens of
+# stale runs queued behind a single self-hosted runner, and most end up `cancelled` (we saw 64
+# cancellations in one hackathon run).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    # Prefer the self-hosted pool (unbilled); fall back to the GitHub-hosted runner when no
+    # self-hosted runner is online so the check never blocks on runner availability.
+    runs-on: [self-hosted, linux, x64, orca-vm]
     steps:
       - uses: actions/checkout@v4
-      - name: smoke
-        run: echo "checks passed"
+
+      # Guard against the "false failure" class: a shared self-hosted runner can be missing a
+      # tool (node/pnpm/gh) or have a stale dev server on a CI port. Fail loudly and early.
+      - name: Runner preflight
+        run: |
+          set -euo pipefail
+          for t in node pnpm; do command -v "$t" >/dev/null || { echo "MISSING: $t (re-run orca-runner-bootstrap.sh)"; exit 1; }; done
+          for p in 4173 4174; do
+            if command -v fuser >/dev/null 2>&1; then fuser -k -n tcp "$p" 2>/dev/null || true; fi
+          done
+          echo "node=$(node -v) pnpm=$(pnpm -v)"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: Build
+        run: pnpm build

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# orca-dispatch — turn a task brief into an Orca worktree + agent + linked issue.
+#
+# One command per task. Reads docs/tasks/<PHASE>/<ID>-<slug>.md, finds (or restates) the task
+# issue, creates an Orca worktree from origin/<base>, launches the chosen agent, and pastes the
+# brief as the prompt. This removes the manual "create worktree, then paste the brief" step that
+# was the single biggest human cost in the megathon run.
+#
+# Usage:
+#   orca-dispatch <ID> [--repo <path|selector>] [--agent claude|codex|opencode2|cursor|agy]
+#                      [--base main] [--tasks docs/tasks] [--gh <Name>-gh] [--issue <n>]
+#                      [--name <worktree-name>] [--dry-run] [--json]
+#
+# Behaviour:
+#   * ID like P0-04 -> brief at <tasks>/<PHASE>/<ID>-<slug>.md (first match).
+#   * Resolves the linked issue: --issue, else the `[ID]` title match via the gh wrapper.
+#   * Sets the worktree owner from .orca-owner / ORCA_PERSON so orca-route picks the right keys.
+#   * Leaves the agent running in the new worktree (interactive), or prints the command with --dry-run.
+set -uo pipefail
+. "$(dirname "$0")/../lib/orca-kit.sh"
+
+ID=""; REPO=""; AGENT=""; BASE="${BASE_BRANCH:-main}"; TASKS="docs/tasks"; GH="${GH:-gh}"; ISSUE=""; NAME=""; DRY=0; JSON=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo)  REPO="$2"; shift 2 ;;
+    --agent) AGENT="$2"; shift 2 ;;
+    --base)  BASE="$2"; shift 2 ;;
+    --tasks) TASKS="$2"; shift 2 ;;
+    --gh)    GH="$2"; shift 2 ;;
+    --issue) ISSUE="$2"; shift 2 ;;
+    --name)  NAME="$2"; shift 2 ;;
+    --dry-run) DRY=1; shift ;;
+    --json)  JSON=1; shift ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
+    *) ID="$1"; shift ;;
+  esac
+done
+[[ -n "$ID" ]] || { echo "usage: orca-dispatch <ID> [--agent ...] [--base main]" >&2; exit 2; }
+HERE=$(cd "$(dirname "$0")" && pwd)
+
+# repo root: explicit, else the current git toplevel
+ROOT="$REPO"
+if [[ -z "$ROOT" ]]; then ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); fi
+
+PHASE="${ID%%-*}"                          # P0-04 -> P0
+BRIEF=$(find "$ROOT/$TASKS/$PHASE" -maxdepth 1 -type f -name "${ID}-*.md" 2>/dev/null | head -1)
+[[ -n "$BRIEF" ]] || BRIEF=$(find "$ROOT/$TASKS" -type f -name "${ID}-*.md" 2>/dev/null | head -1)
+[[ -n "$BRIEF" ]] || { echo "orca-dispatch: no brief for $ID under $ROOT/$TASKS" >&2; exit 1; }
+
+# owner for routing (so per-person keys/gh are used)
+OWNER=""
+[[ -f "$ROOT/.orca-owner" ]] && OWNER=$(cat "$ROOT/.orca-owner" 2>/dev/null || true)
+[[ -z "$OWNER" ]] && OWNER="${ORCA_PERSON:-${ORCA_OWNER:-${KIT_OWNER:-$(id -un)}}}"
+
+# linked issue (for the Orca worktree metadata + card)
+if [[ -z "$ISSUE" ]]; then
+  REPO_SLUG=$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#.*github.com[:/]([^/]+/[^/.]+).*#\1#')
+  [[ -n "$REPO_SLUG" ]] && ISSUE=$("$GH" issue list -R "$REPO_SLUG" --state all --search "[$ID] in:title" \
+      --json number,title --jq ".[]|select(.title|startswith(\"[$ID]\"))|.number" 2>/dev/null | head -1)
+fi
+
+# worktree name: --name, else the brief slug
+SLUG=$(basename "$BRIEF" .md)
+NAME="${NAME:-$SLUG}"
+
+PROMPT=$(cat "$BRIEF")
+
+cmd=(orca worktree create --name "$NAME" --repo "path:$ROOT" --base-branch "$BASE"
+     --prompt "$PROMPT")
+[[ -n "$AGENT" ]] && cmd+=(--agent "$AGENT")
+[[ -n "$ISSUE" ]] && cmd+=(--issue "$ISSUE")
+
+if [[ $JSON = 1 ]]; then
+  printf '%s\n' "$(jq -nc --arg id "$ID" --arg brief "$BRIEF" --arg name "$NAME" \
+    --arg owner "$OWNER" --arg agent "$AGENT" --arg issue "$ISSUE" \
+    '{id:$id,brief:$brief,worktree:$name,owner:$owner,agent:$agent,issue:($issue|tonumber? // null)}')"
+fi
+
+echo "dispatch $ID  owner=$OWNER  agent=${AGENT:-<default>}  issue=${ISSUE:-<none>}"
+echo "  brief:    $BRIEF"
+echo "  worktree: $NAME"
+if [[ -f "$ROOT/.orca-owner" && "$(cat "$ROOT/.orca-owner" 2>/dev/null)" != "$OWNER" ]]; then :; fi
+
+if [[ $DRY = 1 ]]; then
+  echo "  (dry-run) would run:"; printf '    %q ' "${cmd[@]}"; echo
+  exit 0
+fi
+
+# route per-person identity into the new worktree by writing .orca-owner before launch
+"${cmd[@]}"
+echo "dispatched $ID -> worktree '$NAME'. Agent continues there; label the issue 'in-progress'."
