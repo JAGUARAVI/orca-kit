@@ -50,7 +50,8 @@ A PR is credited to **only the people who actually made commits in that PR**.
   `Co-authored-by:` trailers on the squash commit (`gh pr merge --squash --subject …
   --body …`); the resolver also tags the resolution commit itself.
 
-Example: PR #52 had two committers (`PR Person`, `Second Committer`) and `Base Person`
+Example (a deliberately-engineered test fixture, `docs/_author_scope_demo.md`): PR #52 had two
+committers (`PR Person`, `Second Committer`) and `Base Person`
 had since edited the same file on `main`. The squash commit credits only
 `Co-authored-by: PR Person` and `Co-authored-by: Second Committer` — `Base Person` is absent.
 

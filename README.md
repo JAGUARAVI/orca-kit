@@ -315,7 +315,7 @@ Megathon. See the full write-up (with screenshots and art) in
 | Code | **+54,668 / −1,667** lines · 1,372 files |
 | Commits on `main` | 114 · **67 with `Co-authored-by` credit** |
 | Tasks | **59 briefs** (P0 23 · P1 14 · P2 22) → 74 issues |
-| Merge agent | 101 PRs · 65 armed · **8 conflicts** resolved · **3 escalated** |
+| Merge agent | 101 PRs · 65 armed · **5 organic conflicts** resolved · escalation path tested on fixtures |
 | PR cycle | p50 **5.6 min** · p90 37.6 min |
 
 ```mermaid
@@ -326,7 +326,9 @@ xychart-beta
     bar [1,5,14,4,1,9,8,4,4,10,9,15]
 ```
 
-> **What kept it safe:** disjoint ownership + frozen interfaces → only **8 of 101** PRs conflicted.
+> **What kept it safe:** disjoint ownership + frozen interfaces → only **5 of 101** PRs hit an
+> organic conflict (the merge agent's conflict/escalation path was also exercised on
+> deliberately-engineered test fixtures).
 > **What hurt:** CI capacity (runners) and quota — not the model. Both are now first-class in the kit
 > (docs 21, 22, 25).
 

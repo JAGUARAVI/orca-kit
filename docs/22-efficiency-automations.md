@@ -10,8 +10,8 @@ specific, **measured** loss — not a guess.
 | merged PRs / people / build window | 98 PRs · 5 people · ~15h | throughput baseline |
 | PR cycle (open→merge) | p50 **5.6 min**, p90 37.6 min, max 72 min | queue tail |
 | merge-agent `arm failed` vs `armed` | **77 vs 65** | >1 wasted retry per merge |
-| conflicts needing resolution | 8 / 101 PRs | spec discipline worked |
-| escalations | 3 / 101 PRs | rare, correct |
+| organic conflicts needing resolution | 5 / 101 PRs | spec discipline worked |
+| escalations | exercised on engineered test fixtures | validated the path, but not an organic metric |
 | worktrees accumulated | **80** for one repo | dead capacity + noise |
 | runs `cancelled` | **64 / 150** | serialized runner + no concurrency cancel |
 | false CI failures | missing `node`, `gh`, `pnpm`; port 4173 in use | toolchain + shared-runner drift |

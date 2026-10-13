@@ -77,8 +77,9 @@ Watch the merge agent: `tail -f ~/.orca-merge/log/merge-agent.log`.
 - **Escalation**: it writes a question to `~/.orca-merge/questions/<pr>.json`, labels the PR
   `merge-conflict` + `needs-author-input`, and comments. The **author agent** answers:
   `orca-author-respond <author-label> <pr>` → the merge agent then applies the answer and merges.
-- Proven: two agents editing the same list were auto-merged; a `RATE=2` vs `RATE=5` conflict was
-  escalated to the author, answered, and merged.
+- Proven in the `orca-demo` harness (engineered fixtures, not the product run): two agents editing the
+  same list were auto-merged; a `RATE=2` vs `RATE=5` conflict was escalated to the author, answered,
+  and merged.
 
 ## 8. The board (decisions)
 https://github.com/users/<owner>/projects/<n>

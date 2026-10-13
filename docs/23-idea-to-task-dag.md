@@ -116,8 +116,9 @@ the *structural* plan. Both derive from the product plan.
 
 ## Why this shape works (evidence)
 On the megathon run this pipeline produced **64 tasks / 104 dependency edges**, and the discipline
-is visible in the data: only **8 of 101 PRs** hit a conflict and only **3** needed a human
-escalation. The dependency-first, disjoint-ownership split — decided in stages ② and ③ — is what
+is visible in the data: only **5 of 101 PRs** hit an organic conflict. (The merge agent's escalation
+path was also exercised on deliberately-engineered test fixtures, so those counts are not a clean
+organic metric.) The dependency-first, disjoint-ownership split — decided in stages ② and ③ — is what
 kept 4–5 agents landing PRs onto one `main` without grinding to a halt.
 
 ## Notes

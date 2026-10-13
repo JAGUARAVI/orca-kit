@@ -46,7 +46,7 @@ The art pipeline was also agent-driven (art bible → approved assets → in-gam
 | Code | **+54,668 / −1,667** lines across **1,372** files (TypeScript 921 KB, CSS 56 KB) |
 | Tasks | **59 briefs** (P0: 23 · P1: 14 · P2: 22) + a hand-written gate checklist → **74 issues**, 71 closed |
 | Host | one VM running Orca + Claude Code / Codex / OpenCode v2 / Cursor |
-| Merge agent | **101 PRs** handled: 65 armed · 8 conflicts resolved · 3 escalated to authors |
+| Merge agent | **101 PRs** handled: 65 armed · **5 organic conflicts** resolved · escalation path tested on fixtures |
 
 That is roughly **6.5 merged PRs per hour across the team** (1.3 per person), on a shared `main`, with two unrelated
 features landing in the same files repeatedly.
@@ -55,15 +55,18 @@ features landing in the same files repeatedly.
 
 **1. Spec-first, dependency-ordered task graph (docs 19, 23).**
 The product plan and technical plan were decomposed into 59 briefs, each owning **disjoint paths**,
-with interfaces frozen first. The proof it worked: only **8 of 101 PRs** hit a merge conflict, and
-only **3** needed a human escalation. Conflicts weren't prevented by luck — they were prevented by
-sequencing the shared interfaces (`contracts`, registries, locale files) behind a single writer.
+with interfaces frozen first. On the real work, only **5 of 101 PRs** hit a merge conflict
+(`#98`, `#129`, `#133`, `#165`, `#170`) — collisions were prevented by sequencing the shared
+interfaces (`contracts`, registries, locale files) behind a single writer, not by luck. (The merge
+agent's conflict-resolution and escalation paths were also exercised heavily on
+**deliberately-engineered test fixtures** — e.g. the authorship test below — so the raw
+conflict/escalation counts logged during that period are not a clean measure of organic work.)
 
 **2. The merge agent (docs 06, 22).**
 It serialized 98 merges, auto-resolved the safe conflicts, and — the part that matters at speed —
 **attributed combined work**: 67 commits credit co-authors, so a PR that landed B's work on top of
-A's changes names both. The 3 escalations were genuine semantic conflicts (`RATE = 2` vs `RATE = 5`);
-it asked the authors instead of guessing. p50 PR cycle was **5.6 minutes**.
+A's changes names both. When a conflict was semantic — not merely textual — it asked the authors
+instead of guessing. p50 PR cycle was **5.6 minutes**.
 
 **3. Per-person isolation (docs 05, 12).**
 Five people on one box, each with an isolated `HOME`/config dir and their own `gh` identity, so
@@ -113,7 +116,7 @@ throughput         98 merged PRs · ~6.5 PRs/hour (team) · ~1.3 PRs/person/hour
 code               +54,668 / −1,667 lines · 1,372 files · TypeScript
 commits            114 on main · 67 with Co-authored-by
 tasks              59 briefs (P0 23 · P1 14 · P2 22) · 74 issues · 71 closed
-merge agent        101 PRs · 65 armed · 8 conflicts resolved · 3 escalated
+merge agent        101 PRs · 65 armed · 5 organic conflicts resolved (more logged were test fixtures)
 PR cycle (open→merge)  p50 5.6 min · p90 37.6 min · max 71.9 min
 CI (last 150 runs) 42 success · 44 failure · 64 cancelled   (E2E: 1 success / 61 — the weak link)
 ```
@@ -144,7 +147,7 @@ gh run list -R $R --limit 150 --json conclusion --jq 'group_by(.conclusion)|.[]|
 
 ## Read it as a playbook
 The run proves three things the kit now encodes:
-1. **Disjoint ownership + frozen interfaces** let many agents share one `main` (8/101 conflicts).
+1. **Disjoint ownership + frozen interfaces** let many agents share one `main` (5/101 organic conflicts).
 2. **A merge agent with authorship accounting** is what makes a parallel fleet safe to trust.
 3. **The failure mode is infrastructure, not the model** — quota, runners, toolchains, ports. Budget
    for CI capacity and runner health the same way you budget for agents.
