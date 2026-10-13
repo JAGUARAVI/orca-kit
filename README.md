@@ -22,7 +22,7 @@ spec-driven workflow that keeps parallel agents from drifting.
 - [Getting started in 60 seconds](#-getting-started-in-60-seconds)
 - [The idea in one picture](#-the-idea-in-one-picture)
 - [Quickstart](#-quickstart)
-- [Configuration (no hardcoded paths)](#-configuration-no-hardcoded-paths)
+- [Configuration](#-configuration-no-hardcoded-paths)
 - [The pipeline: idea → plan → tasks → issues → board](#-the-pipeline-idea--plan--tasks--issues--board)
 - [Day-to-day](#-day-to-day)
 - [Documentation](#-documentation)
