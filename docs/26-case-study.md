@@ -4,6 +4,33 @@ This is the run the kit was extracted from: **Paisa Street**, a financial-litera
 Megathon, delivered in a single weekend. It is included because the numbers are real, the failures
 are real, and every lesson maps to a file in this kit.
 
+## Screenshots from the shipped product
+
+The team's agents built a real 12-level game — the merge agent landed **98 PRs** of it onto one
+`main`. These are frames from the deployed build:
+
+| Home street | Lesson (bank) | Results · 2 stars |
+|---|---|---|
+| ![home street](images/01-home-street.png) | ![bank lesson](images/02-bank-lesson.png) | ![results](images/03-bank-results.png) |
+
+| Skill tree after a level | Loan-offer interaction |
+|---|---|
+| ![skill tree](images/04-skill-tree.png) | ![loan offers](images/05-loan-offers.png) |
+
+## Art produced during the run
+
+The art pipeline was also agent-driven (art bible → approved assets → in-game atlases):
+
+| Concept — world scroll | Phone frame — kirana | NPC — shopkeeper |
+|---|---|---|
+| ![world concept](images/concept-world.png) | ![phone frame](images/concept-phone.png) | ![npc](images/art-npc-kirana.png) |
+
+| Interior — bank | Interior — phone shop |
+|---|---|
+| ![bank interior](images/interior-bank.png) | ![phone shop interior](images/interior-phoneshop.png) |
+
+---
+
 ## The shape of it
 | | |
 |---|---|

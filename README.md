@@ -239,7 +239,12 @@ orca-kit/
 ## 📈 Proven at scale
 
 Extracted from a real weekend run — **Paisa Street**, a financial-literacy game built for the
-Megathon. See the full write-up in **[`docs/26-case-study.md`](docs/26-case-study.md)**.
+Megathon. See the full write-up (with screenshots and art) in
+**[`docs/26-case-study.md`](docs/26-case-study.md)**.
+
+| Home street | Lesson (bank) | Skill tree | Loan offers |
+|---|---|---|---|
+| ![home](docs/images/01-home-street.png) | ![lesson](docs/images/02-bank-lesson.png) | ![skill tree](docs/images/04-skill-tree.png) | ![loans](docs/images/05-loan-offers.png) |
 
 | Metric | Value |
 |---|---|

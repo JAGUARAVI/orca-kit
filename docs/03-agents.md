@@ -37,3 +37,10 @@ Installed at `~/.local/bin/agy` (v1.3.3). Per-person isolation is via an isolate
 ## Ponytail (all agents)
 Every agent ships with the **Ponytail** ruleset (least-code-that-works; default level `full`).
 See `20-ponytail.md`. Switch level with `/ponytail lite|full|ultra|off`.
+
+## Adding more agents
+Any TUI agent can run under Orca. See `27-adding-agents.md` for the full loop: a per-person
+`<Name>-<agent>` wrapper, an `orca-route-<agent>` routing wrapper, the Orca `agentCmdOverrides`
+entry, and the shared rules/skills that keep behaviour consistent. Known Orca ids include
+`claude`, `codex`, `omp`, `pi`, `grok`, `gemini`; anything else launches via
+`orca terminal create --command`.
