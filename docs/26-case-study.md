@@ -1,8 +1,13 @@
 # 26 — Case study: shipping a 59-task product with 5 people and a fleet of agents
 
-This is the run the kit was extracted from: **Life of Rupee**, a financial-literacy game built for the
-Megathon, delivered in a single weekend. It is included because the numbers are real, the failures
-are real, and every lesson maps to a file in this kit.
+This is the run the kit was extracted from: **[Life of Rupee](https://github.com/Megathon-Gs/life-of-rupee)**,
+a financial-literacy game built for the Megathon, delivered in a single weekend. It is included
+because the numbers are real, the failures are real, and every lesson maps to a file in this kit.
+
+> 🔗 **The build (full-history mirror, public):**
+> **[github.com/Megathon-Gs/life-of-rupee](https://github.com/Megathon-Gs/life-of-rupee)** — every
+> branch and commit the agents produced. **The kit:**
+> **[github.com/JAGUARAVI/orca-kit](https://github.com/JAGUARAVI/orca-kit)**.
 
 ## Screenshots from the shipped product
 
