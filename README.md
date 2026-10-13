@@ -60,6 +60,22 @@ per task, and a merge agent that lands the result.
 
 ---
 
+## 🤖 For coding agents (one URL)
+This repo ships an **[`AGENTS.md`](AGENTS.md)** — the open, tool-agnostic standard (60k+ projects;
+read by Claude Code, Codex, OpenCode, Cursor, Gemini, Copilot, and more). Point any agent at it and
+it can install and operate the kit by itself:
+
+```text
+Read https://raw.githubusercontent.com/JAGUARAVI/orca-kit/main/AGENTS.md and follow it to set up and operate this kit.
+```
+
+That single URL is the whole handoff: the agent detects state, configures the one env file, installs
+into a repo, runs the plan → tasks → issues pipeline, and follows the working rules. See
+**[`docs/28-agent-readable-guide.md`](docs/28-agent-readable-guide.md)** for how this works and how
+to override it per repo.
+
+---
+
 ## ⚡ Quickstart
 
 ### New repo (clone + configure + CI)

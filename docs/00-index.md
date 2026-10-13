@@ -29,6 +29,7 @@ New here? Read in order:
 25. `25-teamclaude-account-pooling.md` — pool individual Claude/Codex accounts so agents don't stall on quota
 26. `26-case-study.md` — the megathon run: 98 PRs, 5 people, one host (what worked, what didn't)
 27. `27-adding-agents.md` — support more agents in Orca (wrappers, routing, rules, skills)
+28. `28-agent-readable-guide.md` — the one-URL `AGENTS.md` onboarding for coding agents
 
 Templates (copy into your repo): `templates/PRODUCT-PLAN.md`, `templates/SPEC.md`,
 `templates/ADR.md`, `templates/AGENTS.md`, `templates/TASKS-README.md`, `templates/TASK-BRIEF.md`.
