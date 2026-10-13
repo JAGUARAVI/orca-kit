@@ -37,3 +37,5 @@ Templates (copy into your repo): `templates/PRODUCT-PLAN.md`, `templates/SPEC.md
 Human-facing explainers live in `../orca-welcome/`:
 - `WELCOME.md` (detailed), `PLAYBOOK.md` (day-to-day), `SUMMARY.md` (short),
   `INVITE.md` + `invites/<name>.md`.
+
+Contributing: `CONTRIBUTING.md` · agent onboarding: `AGENTS.md` (one URL) · license: `LICENSE` (MIT).

@@ -1,0 +1,13 @@
+# Local, machine-specific, or secret files — never commit these.
+.orca-kit.env
+*.local
+welcome/invites/
+*.access-link
+*.token
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store

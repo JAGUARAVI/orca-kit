@@ -19,6 +19,7 @@ spec-driven workflow that keeps parallel agents from drifting.
 
 ## 🧭 Contents
 
+- [Getting started in 60 seconds](#-getting-started-in-60-seconds)
 - [The idea in one picture](#-the-idea-in-one-picture)
 - [Quickstart](#-quickstart)
 - [Configuration (no hardcoded paths)](#-configuration-no-hardcoded-paths)
@@ -29,6 +30,36 @@ spec-driven workflow that keeps parallel agents from drifting.
 - [Repository layout](#-repository-layout)
 - [Proven at scale](#-proven-at-scale)
 - [License](#license)
+
+---
+
+## ⏱ Getting started in 60 seconds
+
+```bash
+# 1. clone the kit
+git clone https://github.com/JAGUARAVI/orca-kit.git ~/orca-kit && cd ~/orca-kit
+
+# 2. configure ONE file (nothing else is hardcoded)
+cp orca-kit.env.example ~/.orca-kit.env        # edit KIT_OWNER / MODEL / GH
+
+# 3. put the CLIs on your PATH
+export PATH="$HOME/orca-kit/bin:$PATH"
+
+# 4. apply the kit to a repo (new, or an existing local checkout)
+./setup-existing-repo.sh /path/to/your/repo    # or: ./setup-new-repo.sh <owner/repo>
+
+# 5. scaffold the planning pipeline and run a task
+cd /path/to/your/repo
+orca-plan init "My Project"                    # PRODUCT-PLAN / SPEC / AGENTS / docs/tasks
+task status                                    # ready / in-progress / review / blocked
+orca-dispatch P0-01 --agent claude             # brief -> worktree + agent + linked issue
+```
+
+> **Prefer to let an agent do it?** Point any coding agent at the one-URL onboarding:
+> `Read https://raw.githubusercontent.com/JAGUARAVI/orca-kit/main/AGENTS.md and follow it.`
+
+**Prerequisites:** `git`, `gh` (authenticated), [Orca](https://orca.dev) runtime, and at least one
+agent CLI (Claude Code, Codex, OpenCode, or Cursor). See **[`GUIDE.md`](GUIDE.md)** for provisioning.
 
 ---
 
